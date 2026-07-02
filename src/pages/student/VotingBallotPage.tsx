@@ -274,8 +274,12 @@ export function VotingBallotPage({
         })}
       </div>
 
+      {/* Forced spacer between candidate deck and ballot box */}
+      <div className="w-full clear-both" style={{ height: '70px' }} />
+
       {/* Ballot box */}
-      <div className="flex justify-center mt-16">
+      <div className="flex justify-center">
+
         <div className="relative">
           {/* Masked overlay: clips the ballot as it crosses the slot line */}
           {votingState === "sliding" && votedCandidate && (
