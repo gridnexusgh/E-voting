@@ -84,9 +84,10 @@ export function StudentSidebar({
       {/* Menu */}
       <div className="flex-1 overflow-y-auto py-4 px-3">
         {!collapsed && (
-          <p className="text-xs text-blue-300 tracking-widest mb-3 px-2">
+          <p className="text-xs text-slate-400 tracking-widest mb-3 px-2">
             MAIN MENU
           </p>
+
         )}
 
         <nav className="space-y-1">
