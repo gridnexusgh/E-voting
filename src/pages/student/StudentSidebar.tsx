@@ -186,9 +186,10 @@ export function StudentSidebar({
         {/* Account */}
         <div className="mt-8">
           {!collapsed && (
-            <p className="text-xs text-blue-300 tracking-widest mb-3 px-2">
+            <p className="text-xs text-slate-400 tracking-widest mb-3 px-2">
               ACCOUNT
             </p>
+
           )}
           <div className="space-y-1">
             <button
