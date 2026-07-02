@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowRight, CheckCircle2, Info, User as UserIcon } from "lucide-react";
 import confetti from "canvas-confetti";
 
