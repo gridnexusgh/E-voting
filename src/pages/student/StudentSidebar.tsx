@@ -63,7 +63,7 @@ export function StudentSidebar({
 
       {/* Brand header — hidden when collapsed */}
       <div
-        className={`flex items-center gap-3 px-4 py-5 border-b border-blue-800/40 transition-all duration-300 ${
+        className={`flex items-center gap-3 px-4 py-5 border-b border-white/10 transition-all duration-300 ${
           collapsed ? "hidden" : ""
         }`}
       >
@@ -73,12 +73,13 @@ export function StudentSidebar({
           className="w-12 h-12 rounded-xl bg-white p-1 shadow flex-shrink-0"
         />
         <div className="leading-tight whitespace-nowrap">
-          <p className="text-xl font-extrabold tracking-wide">HTU</p>
-          <p className="text-[11px] text-blue-200 tracking-widest">
+          <p className="text-xl font-extrabold tracking-wide text-white">HTU</p>
+          <p className="text-[11px] text-slate-300 tracking-widest">
             E-VOTING SYSTEM
           </p>
         </div>
       </div>
+
 
       {/* Menu */}
       <div className="flex-1 overflow-y-auto py-4 px-3">
