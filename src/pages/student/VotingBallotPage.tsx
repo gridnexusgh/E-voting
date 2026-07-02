@@ -199,7 +199,7 @@ export function VotingBallotPage({
   // Main ballot UI
   // ============================================================
   return (
-    <div className="min-h-full p-4 sm:p-6 lg:p-8 space-y-10">
+    <div className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8 pb-12 space-y-10">
       <style>{`
         @keyframes slideIntoBox {
           0%   { transform: translateY(0); opacity: 1; }
