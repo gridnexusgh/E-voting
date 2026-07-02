@@ -36,8 +36,9 @@ export function StudentSidebar({
   const paddedRow = collapsed
     ? "px-3 py-3 justify-center"
     : "px-4 py-3 justify-start";
-  const activeClass = "bg-white text-blue-700 shadow-md";
-  const idleClass = "text-blue-100 hover:bg-blue-800/60 hover:text-white";
+  const activeClass = "bg-white/15 text-white border border-white/20 shadow-md backdrop-blur";
+  const idleClass = "text-slate-300 hover:bg-white/10 hover:text-white";
+
 
   const menuLabel = (text: string) => (
     <span
@@ -53,15 +54,16 @@ export function StudentSidebar({
 
   return (
     <aside
-      className={`flex flex-col overflow-hidden bg-[#1e40af] text-white z-40 transition-all duration-300 ease-in-out h-screen fixed md:sticky top-0 ${
+      className={`flex flex-col overflow-hidden bg-gradient-to-b from-[#0C1E4E] to-[#0E1E38] border-r border-white/10 text-white z-40 transition-all duration-300 ease-in-out h-screen fixed md:sticky top-0 ${
         collapsed
           ? "-translate-x-full md:translate-x-0 md:w-16"
           : "translate-x-0 w-72 md:w-72 shadow-2xl md:shadow-none"
       }`}
     >
+
       {/* Brand header — hidden when collapsed */}
       <div
-        className={`flex items-center gap-3 px-4 py-5 border-b border-blue-800/40 transition-all duration-300 ${
+        className={`flex items-center gap-3 px-4 py-5 border-b border-white/10 transition-all duration-300 ${
           collapsed ? "hidden" : ""
         }`}
       >
@@ -71,19 +73,21 @@ export function StudentSidebar({
           className="w-12 h-12 rounded-xl bg-white p-1 shadow flex-shrink-0"
         />
         <div className="leading-tight whitespace-nowrap">
-          <p className="text-xl font-extrabold tracking-wide">HTU</p>
-          <p className="text-[11px] text-blue-200 tracking-widest">
+          <p className="text-xl font-extrabold tracking-wide text-white">HTU</p>
+          <p className="text-[11px] text-slate-300 tracking-widest">
             E-VOTING SYSTEM
           </p>
         </div>
       </div>
 
+
       {/* Menu */}
       <div className="flex-1 overflow-y-auto py-4 px-3">
         {!collapsed && (
-          <p className="text-xs text-blue-300 tracking-widest mb-3 px-2">
+          <p className="text-xs text-slate-400 tracking-widest mb-3 px-2">
             MAIN MENU
           </p>
+
         )}
 
         <nav className="space-y-1">
@@ -139,7 +143,8 @@ export function StudentSidebar({
                   <button
                     key={key}
                     onClick={() => handleSelect(key)}
-                    className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-blue-100 hover:bg-blue-800/60 hover:text-white transition-colors"
+                    className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+
                   >
                     <Circle className="w-2 h-2" />
                     <span>{text}</span>
@@ -161,10 +166,11 @@ export function StudentSidebar({
               {menuLabel("Slots")}
             </span>
             {!collapsed && (
-              <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded">
+              <span className="text-[10px] font-bold bg-red-500/20 border border-red-400/30 text-red-300 px-2 py-0.5 rounded-full backdrop-blur">
                 CLOSED
               </span>
             )}
+
           </button>
 
           <button
@@ -180,9 +186,10 @@ export function StudentSidebar({
         {/* Account */}
         <div className="mt-8">
           {!collapsed && (
-            <p className="text-xs text-blue-300 tracking-widest mb-3 px-2">
+            <p className="text-xs text-slate-400 tracking-widest mb-3 px-2">
               ACCOUNT
             </p>
+
           )}
           <div className="space-y-1">
             <button
@@ -207,7 +214,7 @@ export function StudentSidebar({
               <div className="ml-6 mt-1 space-y-1">
                 <button
                   onClick={() => handleSelect("reset-password")}
-                  className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-blue-100 hover:bg-blue-800/60 hover:text-white transition-colors"
+                  className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
                 >
                   <Circle className="w-2 h-2" />
                   <span>Reset Password</span>
@@ -219,7 +226,7 @@ export function StudentSidebar({
       </div>
 
       {/* Sign out */}
-      <div className="p-3 border-t border-blue-800/40">
+      <div className="p-3 border-t border-white/10">
         <button
           onClick={logout}
           className={`${itemBase} ${paddedRow} ${idleClass}`}
