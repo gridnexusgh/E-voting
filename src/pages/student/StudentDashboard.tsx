@@ -144,7 +144,7 @@ export function StudentDashboard() {
             <div className="flex justify-end mt-8">
               <button
                 onClick={() => setActiveItem("vote")}
-                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg transition-colors"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#0C1E4E] to-[#0E1E38] hover:opacity-90 text-white font-semibold px-8 py-3 rounded-full shadow-lg transition-opacity"
               >
                 Vote Now!
                 <ArrowRight className="w-5 h-5" />
