@@ -17,7 +17,7 @@ export function StudentHeader({ onToggleSidebar }: StudentHeaderProps) {
           >
             <Menu className="w-6 h-6" />
           </button>
-          <h1 className="text-blue-700 font-bold tracking-wide text-lg">
+          <h1 className="font-bold tracking-wide text-lg bg-gradient-to-r from-[#0C1E4E] to-[#0E1E38] bg-clip-text text-transparent">
             HTU ELECTION
           </h1>
         </div>
@@ -25,7 +25,7 @@ export function StudentHeader({ onToggleSidebar }: StudentHeaderProps) {
         <div className="flex items-center gap-4">
           <button
             aria-label="Notifications"
-            className="relative p-2 rounded-full hover:bg-blue-50 text-blue-600 transition-colors"
+            className="relative p-2 rounded-full hover:bg-slate-100 text-[#0C1E4E] transition-colors"
           >
             <Bell className="w-6 h-6" />
             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white" />
