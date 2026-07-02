@@ -85,18 +85,18 @@ export function StudentDashboard() {
           </section>
 
           {/* Student Profile Card */}
-          <section className="relative bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8">
+          <section className="relative bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 p-6 sm:p-8 text-white">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-gray-500 text-lg">Student Profile</h3>
-              <span className="inline-flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-3 py-1 rounded-full">
-                <span className="w-2 h-2 rounded-full bg-white" />
+              <h3 className="text-slate-300 text-lg">Student Profile</h3>
+              <span className="inline-flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-sm font-medium px-3 py-1 rounded-full backdrop-blur">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
                 Active
               </span>
             </div>
 
             <div className="flex flex-col items-center text-center">
               <div className="relative">
-                <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full border-4 border-blue-600 overflow-hidden bg-gray-100">
+                <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full border-4 border-white/20 overflow-hidden bg-white/5">
                   <img
                     src="https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?w=400&h=400&fit=crop&crop=face"
                     alt="Student"
@@ -105,22 +105,23 @@ export function StudentDashboard() {
                 </div>
                 <button
                   aria-label="Edit profile picture"
-                  className="absolute bottom-2 right-2 w-11 h-11 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg transition-colors"
+                  className="absolute bottom-2 right-2 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 border border-white/20 text-white flex items-center justify-center shadow-lg backdrop-blur transition-colors"
                 >
                   <Pencil className="w-5 h-5" />
                 </button>
               </div>
 
-              <h2 className="mt-5 text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-wide">
+              <h2 className="mt-5 text-2xl sm:text-3xl font-extrabold text-white tracking-wide">
                 {fullName}
               </h2>
-              <div className="mt-3 space-y-1 text-gray-500">
+              <div className="mt-3 space-y-1 text-slate-300">
                 <p>HND Information and Communication Technology</p>
                 <p>Faculty of Applied Science and Technology</p>
                 <p>Department of Computer Science</p>
               </div>
             </div>
           </section>
+
 
           {/* Voting Guide */}
           <section className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8">
