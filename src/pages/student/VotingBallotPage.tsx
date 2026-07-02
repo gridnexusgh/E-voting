@@ -146,11 +146,11 @@ export function VotingBallotPage({
     setDraggedCandidate(null);
     setVotingState("sliding");
 
-    // Phase A → B → C
+    // Wait for the slide-into-box animation to complete (500ms)
     window.setTimeout(() => {
       fireConfetti();
       setVotingState("success");
-    }, 550);
+    }, 500);
   };
 
   const handleNext = () => {
