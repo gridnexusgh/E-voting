@@ -12,6 +12,7 @@ import {
   Circle,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import htuLogo from "../../assets/HTU.png";
 
 interface StudentSidebarProps {
