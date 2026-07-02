@@ -214,7 +214,7 @@ export function StudentSidebar({
               <div className="ml-6 mt-1 space-y-1">
                 <button
                   onClick={() => handleSelect("reset-password")}
-                  className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-blue-100 hover:bg-blue-800/60 hover:text-white transition-colors"
+                  className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
                 >
                   <Circle className="w-2 h-2" />
                   <span>Reset Password</span>
