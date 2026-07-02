@@ -226,7 +226,7 @@ export function StudentSidebar({
       </div>
 
       {/* Sign out */}
-      <div className="p-3 border-t border-blue-800/40">
+      <div className="p-3 border-t border-white/10">
         <button
           onClick={logout}
           className={`${itemBase} ${paddedRow} ${idleClass}`}
