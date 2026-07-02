@@ -146,11 +146,11 @@ export function VotingBallotPage({
     setDraggedCandidate(null);
     setVotingState("sliding");
 
-    // Phase A → B → C
+    // Wait for the slide-into-box animation to complete (500ms)
     window.setTimeout(() => {
       fireConfetti();
       setVotingState("success");
-    }, 550);
+    }, 500);
   };
 
   const handleNext = () => {
@@ -200,6 +200,17 @@ export function VotingBallotPage({
   // ============================================================
   return (
     <div className="min-h-full p-4 sm:p-6 lg:p-8 space-y-6">
+      <style>{`
+        @keyframes slideIntoBox {
+          0%   { transform: translate(-50%, 0) rotateX(0deg); opacity: 1; }
+          60%  { transform: translate(-50%, 60px) rotateX(15deg); opacity: 1; }
+          100% { transform: translate(-50%, 120px) rotateX(25deg); opacity: 0; }
+        }
+        .animate-slide-into-box {
+          animation: slideIntoBox 500ms cubic-bezier(0.55, 0.05, 0.4, 1) forwards;
+          transform-origin: top center;
+        }
+      `}</style>
       {/* Header greeting */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 px-6 py-5">
         <h1 className="text-xl sm:text-2xl font-bold text-[#0E1E38] text-center">
@@ -280,16 +291,17 @@ export function VotingBallotPage({
           {/* Slot line */}
           <div className="absolute top-4 left-1/2 -translate-x-1/2 w-40 h-1.5 bg-white/90 rounded-full shadow-inner" />
 
-          {/* Sliding token */}
+          {/* Sliding ballot paper token */}
           {votingState === "sliding" && votedCandidate && (
             <div
-              className="absolute left-1/2 -translate-x-1/2 top-2 w-36 h-14 bg-white rounded-md shadow-md flex items-center justify-center text-[11px] font-semibold text-[#0E1E38] transition-all duration-500 ease-in"
+              className="absolute left-1/2 top-2 w-40 h-12 -translate-x-1/2 rounded-sm bg-white shadow-lg flex items-center justify-center text-[11px] font-semibold text-[#0E1E38] animate-slide-into-box"
               style={{
-                transform: "translate(-50%, 80px)",
-                opacity: 0,
+                backgroundImage:
+                  "repeating-linear-gradient(180deg, #ffffff 0 6px, #f1f5f9 6px 7px)",
+                borderTop: "2px solid #e2e8f0",
               }}
             >
-              {votedCandidate.name}
+              <span className="px-2 truncate">{votedCandidate.name}</span>
             </div>
           )}
 
