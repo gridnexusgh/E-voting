@@ -27,6 +27,21 @@ export function StudentSidebar({
   onSelect,
 }: StudentSidebarProps) {
   const { logout } = useAuth();
+  const navigate = useNavigate();
+  const handleSignOut = async () => {
+    try {
+      await logout();
+    } finally {
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch {
+        /* noop */
+      }
+      window.location.href = "/login";
+      navigate("/login", { replace: true });
+    }
+  };
   const [resultsOpen, setResultsOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
 
