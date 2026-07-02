@@ -12,6 +12,7 @@ import {
   Circle,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import htuLogo from "../../assets/HTU.png";
 
 interface StudentSidebarProps {
@@ -26,6 +27,21 @@ export function StudentSidebar({
   onSelect,
 }: StudentSidebarProps) {
   const { logout } = useAuth();
+  const navigate = useNavigate();
+  const handleSignOut = async () => {
+    try {
+      await logout();
+    } finally {
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch {
+        /* noop */
+      }
+      window.location.href = "/login";
+      navigate("/login", { replace: true });
+    }
+  };
   const [resultsOpen, setResultsOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
 
@@ -221,7 +237,7 @@ export function StudentSidebar({
       {/* Sign out */}
       <div className="p-3 border-t border-blue-800/40">
         <button
-          onClick={logout}
+          onClick={handleSignOut}
           className={`${itemBase} ${paddedRow} ${idleClass}`}
           title="Sign Out"
         >
