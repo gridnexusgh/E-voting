@@ -43,7 +43,7 @@ export function StudentDashboard() {
   const fullName = user?.full_name?.toUpperCase() || "STUDENT NAME";
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-r from-[#0C1E4E] to-[#0E1E38] text-white">
+    <div className="flex min-h-screen bg-gray-50">
       <StudentSidebar
         collapsed={sidebarCollapsed}
         activeItem={activeItem}
@@ -61,19 +61,18 @@ export function StudentDashboard() {
           ) : (
           <>
           {/* Welcome Hero */}
-          <section className="relative overflow-hidden rounded-2xl p-6 sm:p-8 bg-white/5 backdrop-blur-md border border-white/10 shadow-xl text-white">
-            <div className="absolute -right-10 -top-10 w-64 h-64 rounded-full bg-white/5" />
+          <section className="relative overflow-hidden rounded-2xl p-6 sm:p-8 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 text-white shadow-lg">
+            <div className="absolute -right-10 -top-10 w-64 h-64 rounded-full bg-white/10" />
             <div className="absolute right-20 bottom-0 w-40 h-40 rounded-full bg-white/5" />
             <div className="relative">
               <h2 className="text-2xl sm:text-3xl font-bold">
                 Welcome Back, {firstName}
                 <span className="italic">!</span>
               </h2>
-              <p className="mt-3 flex items-center gap-2 text-slate-300">
-                <span className="w-2 h-2 rounded-full bg-blue-300" />
+              <p className="mt-3 flex items-center gap-2 text-blue-50">
+                <span className="w-2 h-2 rounded-full bg-blue-200" />
                 Computer Science Department Election Ongoing
               </p>
-
               <button
                 onClick={() => setActiveItem("vote")}
                 className="mt-4 inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur px-4 py-1.5 rounded-full text-sm font-semibold transition-colors"
@@ -85,18 +84,18 @@ export function StudentDashboard() {
           </section>
 
           {/* Student Profile Card */}
-          <section className="relative bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 p-6 sm:p-8 text-white">
+          <section className="relative bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-slate-300 text-lg">Student Profile</h3>
-              <span className="inline-flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-sm font-medium px-3 py-1 rounded-full backdrop-blur">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <h3 className="text-gray-500 text-lg">Student Profile</h3>
+              <span className="inline-flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-3 py-1 rounded-full">
+                <span className="w-2 h-2 rounded-full bg-white" />
                 Active
               </span>
             </div>
 
             <div className="flex flex-col items-center text-center">
               <div className="relative">
-                <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full border-4 border-white/20 overflow-hidden bg-white/5">
+                <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full border-4 border-blue-600 overflow-hidden bg-gray-100">
                   <img
                     src="https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?w=400&h=400&fit=crop&crop=face"
                     alt="Student"
@@ -105,16 +104,16 @@ export function StudentDashboard() {
                 </div>
                 <button
                   aria-label="Edit profile picture"
-                  className="absolute bottom-2 right-2 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 border border-white/20 text-white flex items-center justify-center shadow-lg backdrop-blur transition-colors"
+                  className="absolute bottom-2 right-2 w-11 h-11 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg transition-colors"
                 >
                   <Pencil className="w-5 h-5" />
                 </button>
               </div>
 
-              <h2 className="mt-5 text-2xl sm:text-3xl font-extrabold text-white tracking-wide">
+              <h2 className="mt-5 text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-wide">
                 {fullName}
               </h2>
-              <div className="mt-3 space-y-1 text-slate-300">
+              <div className="mt-3 space-y-1 text-gray-500">
                 <p>HND Information and Communication Technology</p>
                 <p>Faculty of Applied Science and Technology</p>
                 <p>Department of Computer Science</p>
@@ -122,23 +121,22 @@ export function StudentDashboard() {
             </div>
           </section>
 
-
           {/* Voting Guide */}
-          <section className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 p-6 sm:p-8 text-white">
-            <div className="inline-block bg-red-500/20 border border-red-400/30 text-red-300 font-semibold px-4 py-2 rounded-md backdrop-blur">
+          <section className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8">
+            <div className="inline-block bg-red-600 text-white font-semibold px-4 py-2 rounded-md">
               HOW DO I VOTE?
             </div>
-            <h4 className="mt-6 text-lg sm:text-xl font-semibold text-white">
+            <h4 className="mt-6 text-lg sm:text-xl font-semibold text-gray-900">
               Here is the step by step guide on how to vote
             </h4>
 
             <ol className="mt-6 space-y-5 list-decimal list-inside pl-2 sm:pl-6">
               {votingSteps.map((step) => (
-                <li key={step.title} className="text-slate-300">
-                  <span className="font-semibold text-white">
+                <li key={step.title} className="text-gray-700">
+                  <span className="font-semibold text-gray-900">
                     {step.title}
                   </span>{" "}
-                  <span className="text-slate-400">– {step.body}</span>
+                  <span className="text-gray-500">– {step.body}</span>
                 </li>
               ))}
             </ol>
@@ -146,14 +144,13 @@ export function StudentDashboard() {
             <div className="flex justify-end mt-8">
               <button
                 onClick={() => setActiveItem("vote")}
-                className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/20 text-white font-semibold px-8 py-3 rounded-full shadow-lg backdrop-blur transition-colors"
+                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg transition-colors"
               >
                 Vote Now!
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           </section>
-
           </>
           )}
         </main>
