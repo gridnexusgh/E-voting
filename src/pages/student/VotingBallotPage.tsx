@@ -199,12 +199,13 @@ export function VotingBallotPage({
   // Main ballot UI
   // ============================================================
   return (
-    <div className="min-h-full p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="min-h-full p-4 sm:p-6 lg:p-8 space-y-10">
       <style>{`
         @keyframes slideIntoBox {
-          0%   { transform: translate(-50%, 0) rotateX(0deg); opacity: 1; }
-          60%  { transform: translate(-50%, 60px) rotateX(15deg); opacity: 1; }
-          100% { transform: translate(-50%, 120px) rotateX(25deg); opacity: 0; }
+          0%   { transform: translate(-50%, -18px) rotateX(0deg); opacity: 1; }
+          20%  { transform: translate(-50%, 0) rotateX(0deg); opacity: 1; }
+          70%  { transform: translate(-50%, 70px) rotateX(12deg); opacity: 0.95; }
+          100% { transform: translate(-50%, 140px) rotateX(22deg); opacity: 0; }
         }
         .animate-slide-into-box {
           animation: slideIntoBox 500ms cubic-bezier(0.55, 0.05, 0.4, 1) forwards;
@@ -277,7 +278,7 @@ export function VotingBallotPage({
       </div>
 
       {/* Ballot box */}
-      <div className="flex justify-center pt-4">
+      <div className="flex justify-center pt-6">
         <div
           ref={ballotBoxRef}
           onDragOver={(e) => e.preventDefault()}
@@ -289,12 +290,12 @@ export function VotingBallotPage({
           }`}
         >
           {/* Slot line */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-40 h-1.5 bg-white/90 rounded-full shadow-inner" />
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-40 h-1.5 bg-white/90 rounded-full shadow-inner z-10" />
 
-          {/* Sliding ballot paper token */}
+          {/* Sliding ballot paper token — starts centered on slot, drops into box */}
           {votingState === "sliding" && votedCandidate && (
             <div
-              className="absolute left-1/2 top-2 w-40 h-12 -translate-x-1/2 rounded-sm bg-white shadow-lg flex items-center justify-center text-[11px] font-semibold text-[#0E1E38] animate-slide-into-box"
+              className="absolute left-1/2 top-4 w-40 h-12 rounded-sm bg-white shadow-lg flex items-center justify-center text-[11px] font-semibold text-[#0E1E38] animate-slide-into-box"
               style={{
                 backgroundImage:
                   "repeating-linear-gradient(180deg, #ffffff 0 6px, #f1f5f9 6px 7px)",
