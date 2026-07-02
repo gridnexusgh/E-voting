@@ -124,21 +124,21 @@ export function StudentDashboard() {
 
 
           {/* Voting Guide */}
-          <section className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8">
-            <div className="inline-block bg-red-600 text-white font-semibold px-4 py-2 rounded-md">
+          <section className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 p-6 sm:p-8 text-white">
+            <div className="inline-block bg-red-500/20 border border-red-400/30 text-red-300 font-semibold px-4 py-2 rounded-md backdrop-blur">
               HOW DO I VOTE?
             </div>
-            <h4 className="mt-6 text-lg sm:text-xl font-semibold text-gray-900">
+            <h4 className="mt-6 text-lg sm:text-xl font-semibold text-white">
               Here is the step by step guide on how to vote
             </h4>
 
             <ol className="mt-6 space-y-5 list-decimal list-inside pl-2 sm:pl-6">
               {votingSteps.map((step) => (
-                <li key={step.title} className="text-gray-700">
-                  <span className="font-semibold text-gray-900">
+                <li key={step.title} className="text-slate-300">
+                  <span className="font-semibold text-white">
                     {step.title}
                   </span>{" "}
-                  <span className="text-gray-500">– {step.body}</span>
+                  <span className="text-slate-400">– {step.body}</span>
                 </li>
               ))}
             </ol>
@@ -146,13 +146,14 @@ export function StudentDashboard() {
             <div className="flex justify-end mt-8">
               <button
                 onClick={() => setActiveItem("vote")}
-                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg transition-colors"
+                className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/20 text-white font-semibold px-8 py-3 rounded-full shadow-lg backdrop-blur transition-colors"
               >
                 Vote Now!
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           </section>
+
           </>
           )}
         </main>
