@@ -23,6 +23,25 @@ interface ImportedStudent {
   image_url?: string;
 }
 
+function normalizeStudentEmail(studentId: string, email?: string) {
+  const normalizedStudentId = studentId.trim().toLowerCase();
+  const normalizedEmail = (email || "").trim().toLowerCase();
+
+  if (!normalizedStudentId) {
+    return normalizedEmail || "";
+  }
+
+  if (!normalizedEmail) {
+    return `${normalizedStudentId}@htu.edu.gh`;
+  }
+
+  if (normalizedEmail.includes("@")) {
+    return normalizedEmail;
+  }
+
+  return `${normalizedEmail}@htu.edu.gh`;
+}
+
 interface ImportResult {
   success: number;
   failed: number;
@@ -61,26 +80,33 @@ export function StudentImport({ onImport }: StudentImportProps) {
 
   async function loadStudentRecords() {
     setIsLoadingRecords(true);
-    const { data } = await supabase
-      .from("student_records")
-      .select(
-        `
-        id,
-        student_id,
-        full_name,
-        email,
-        faculty_id,
-        department_id,
-        status,
-        faculties(name),
-        departments(name)
-      `,
-      )
-      .order("created_at", { ascending: false });
-    if (data) {
-      setStudentRecords(data as StudentRecord[]);
+    try {
+      const { data: records } = await supabase
+        .from("student_records")
+        .select("id, student_id, full_name, email, faculty_id, department_id, status")
+        .order("created_at", { ascending: false });
+
+      if (!records) {
+        setStudentRecords([]);
+        return;
+      }
+
+      const { data: faculties } = await supabase.from("faculties").select("id, name");
+      const { data: departments } = await supabase.from("departments").select("id, name");
+
+      const facultyMap = new Map(faculties?.map((f) => [f.id, f.name]) || []);
+      const departmentMap = new Map(departments?.map((d) => [d.id, d.name]) || []);
+
+      const enriched = records.map((record) => ({
+        ...record,
+        faculties: record.faculty_id ? [{ name: facultyMap.get(record.faculty_id) || "" }] : null,
+        departments: record.department_id ? [{ name: departmentMap.get(record.department_id) || "" }] : null,
+      })) as StudentRecord[];
+
+      setStudentRecords(enriched);
+    } finally {
+      setIsLoadingRecords(false);
     }
-    setIsLoadingRecords(false);
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -116,9 +142,18 @@ export function StudentImport({ onImport }: StudentImportProps) {
       students.push({
         student_id: values[headers.indexOf("student_id")]?.trim() || "",
         full_name: values[headers.indexOf("full_name")]?.trim() || "",
-        email: values[headers.indexOf("email")]?.trim() || "",
-        faculty: values[headers.indexOf("faculty")]?.trim() || "",
-        department: values[headers.indexOf("department")]?.trim() || "",
+        email: normalizeStudentEmail(
+          values[headers.indexOf("student_id")]?.trim() || "",
+          values[headers.indexOf("email")]?.trim() || "",
+        ),
+        faculty:
+          values[headers.indexOf("faculty")]?.trim() ||
+          values[headers.indexOf("faculty_code")]?.trim() ||
+          "",
+        department:
+          values[headers.indexOf("department")]?.trim() ||
+          values[headers.indexOf("department_code")]?.trim() ||
+          "",
         status: values[headers.indexOf("status")]?.trim() || "active",
         image_url:
           values[headers.indexOf("image_url")]?.trim() ||
@@ -149,7 +184,10 @@ export function StudentImport({ onImport }: StudentImportProps) {
         students.push({
           student_id: values[headers.indexOf("student_id")]?.trim() || "",
           full_name: values[headers.indexOf("full_name")]?.trim() || "",
-          email: values[headers.indexOf("email")]?.trim() || "",
+          email: normalizeStudentEmail(
+            values[headers.indexOf("student_id")]?.trim() || "",
+            values[headers.indexOf("email")]?.trim() || "",
+          ),
           faculty:
             values[headers.indexOf("faculty")]?.trim() ||
             values[headers.indexOf("faculty_code")]?.trim() ||
@@ -169,7 +207,6 @@ export function StudentImport({ onImport }: StudentImportProps) {
         .from("departments")
         .select("id, name, code, faculty_id");
 
-      // Map by both name and code
       const facultyMap = new Map<string, string>();
       faculties?.forEach((f) => {
         facultyMap.set(f.name.toLowerCase().trim(), f.id);
@@ -182,6 +219,67 @@ export function StudentImport({ onImport }: StudentImportProps) {
         deptMap.set(`${d.code.toLowerCase()}_${d.faculty_id}`, d.id);
       });
 
+      const ensureFaculty = async (facultyCode: string) => {
+        const normalizedCode = facultyCode.trim().toUpperCase();
+        const normalizedName = facultyCode.trim();
+        const existingFacultyId =
+          facultyMap.get(normalizedCode.toLowerCase()) ||
+          facultyMap.get(normalizedName.toLowerCase());
+
+        if (existingFacultyId) {
+          return { id: existingFacultyId, name: normalizedName, code: normalizedCode };
+        }
+
+        const { data: createdFaculty, error: facultyError } = await supabase
+          .from("faculties")
+          .insert({
+            name: normalizedName || normalizedCode || "Imported Faculty",
+            code: normalizedCode || "IMPORTED",
+            description: "Created during student import",
+          })
+          .select("id, name, code")
+          .single();
+
+        if (facultyError || !createdFaculty) {
+          return null;
+        }
+
+        facultyMap.set(createdFaculty.name.toLowerCase().trim(), createdFaculty.id);
+        facultyMap.set(createdFaculty.code.toLowerCase(), createdFaculty.id);
+        return createdFaculty;
+      };
+
+      const ensureDepartment = async (facultyId: string, departmentCode: string) => {
+        const normalizedCode = departmentCode.trim().toUpperCase();
+        const normalizedName = departmentCode.trim();
+        const existingDepartmentId =
+          deptMap.get(`${normalizedCode.toLowerCase()}_${facultyId}`) ||
+          deptMap.get(`${normalizedName.toLowerCase()}_${facultyId}`);
+
+        if (existingDepartmentId) {
+          return { id: existingDepartmentId, name: normalizedName, code: normalizedCode };
+        }
+
+        const { data: createdDepartment, error: departmentError } = await supabase
+          .from("departments")
+          .insert({
+            faculty_id: facultyId,
+            name: normalizedName || normalizedCode || "Imported Department",
+            code: normalizedCode || "IMPORTED",
+            description: "Created during student import",
+          })
+          .select("id, name, code")
+          .single();
+
+        if (departmentError || !createdDepartment) {
+          return null;
+        }
+
+        deptMap.set(`${createdDepartment.name.toLowerCase().trim()}_${facultyId}`, createdDepartment.id);
+        deptMap.set(`${createdDepartment.code.toLowerCase()}_${facultyId}`, createdDepartment.id);
+        return createdDepartment;
+      };
+
       let successCount = 0;
       let failedCount = 0;
       const errors: string[] = [];
@@ -193,32 +291,23 @@ export function StudentImport({ onImport }: StudentImportProps) {
           continue;
         }
 
-        // Try to find faculty by name first, then by code
         let facultyId = facultyMap.get(student.faculty.toLowerCase().trim());
         if (!facultyId) {
-          const faculty = faculties?.find(
-            (f) =>
-              f.name.toLowerCase().trim() ===
-                student.faculty.toLowerCase().trim() ||
-              f.code.toLowerCase() === student.faculty.toLowerCase(),
-          );
+          const faculty = student.faculty
+            ? await ensureFaculty(student.faculty)
+            : null;
           facultyId = faculty?.id || null;
         }
 
         let departmentId = null;
         if (facultyId && student.department) {
-          // Try by name first, then by code
           departmentId = deptMap.get(
             `${student.department.toLowerCase().trim()}_${facultyId}`,
           );
           if (!departmentId) {
-            const dept = departments?.find(
-              (d) =>
-                d.faculty_id === facultyId &&
-                (d.name.toLowerCase().trim() ===
-                  student.department.toLowerCase().trim() ||
-                  d.code.toLowerCase() === student.department.toLowerCase()),
-            );
+            const dept = student.department
+              ? await ensureDepartment(facultyId, student.department)
+              : null;
             departmentId = dept?.id || null;
           }
         }
@@ -233,7 +322,6 @@ export function StudentImport({ onImport }: StudentImportProps) {
               faculty_id: facultyId,
               department_id: departmentId,
               status: student.status || "active",
-              profile_image_url: student.image_url || null,
             },
             { onConflict: "student_id" },
           );
@@ -268,7 +356,7 @@ export function StudentImport({ onImport }: StudentImportProps) {
 
   function downloadTemplate() {
     const template =
-      "student_id,full_name,email,faculty_code,department_code,image_url,status\n03212345,John Doe,03212345@university.edu,FAST,CS,https://example.com/photos/john-doe.jpg,active\n03212346,Jane Smith,03212346@university.edu,FOE,ENG,https://example.com/photos/jane-smith.jpg,active";
+      "student_id,full_name,email,faculty_code,department_code,image_url,status\n03212345,John Doe,03212345@htu.edu.gh,FAST,CS,https://example.com/photos/john-doe.jpg,active\n03212346,Jane Smith,03212346@htu.edu.gh,FOE,ENG,https://example.com/photos/jane-smith.jpg,active";
     const blob = new Blob([template], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

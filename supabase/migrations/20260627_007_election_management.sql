@@ -175,7 +175,11 @@ CREATE POLICY "payments_select_officer" ON election_payments FOR SELECT TO authe
     SELECT 1 FROM elections WHERE elections.id = election_payments.election_id AND
     elections.officer_id = auth.uid()
   )
-  OR user_id = auth.uid()
+  OR EXISTS (
+    SELECT 1 FROM election_candidates ec
+    WHERE ec.id = election_payments.candidate_id
+      AND ec.user_id = auth.uid()
+  )
   OR EXISTS (SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role IN ('admin', 'auditor'))
 );
 

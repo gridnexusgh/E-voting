@@ -28,7 +28,7 @@ export function LoginPage() {
         const dashboardRoute = (() => {
           switch (result.role) {
             case "admin":
-              return "/admin/dashboard";
+              return "/admin";
             case "election_officer":
               return "/election-officer/dashboard";
             case "auditor":

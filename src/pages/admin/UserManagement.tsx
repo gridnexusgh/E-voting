@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Users, Search, CreditCard as Edit, Trash2, X, CheckCircle2, AlertCircle, Loader2, Save, Shield, Eye, Globe, Building2 } from 'lucide-react';
-import { supabase } from '../../services/supabase';
+import { supabase, invokeEdgeFunction } from '../../services/supabase';
 import type { User, Faculty, Department } from '../../types';
 
 interface UserFormData {
@@ -137,37 +137,35 @@ export function UserManagement({ onUserCreated }: UserManagementProps) {
         }
         setSuccess('User updated successfully!');
       } else {
-        const { data: { user: authUser }, error: signUpError } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/login`,
-          },
-        });
-
-        if (signUpError || !authUser) {
-          setError(signUpError?.message || 'Failed to create user account');
+        let data;
+        try {
+          data = await invokeEdgeFunction('create-admin-user', {
+            email: formData.email,
+            password: formData.password,
+            full_name: formData.full_name,
+            role: formData.role,
+            username: formData.username || null,
+            scope: formData.scope,
+            faculty_id: formData.scope === 'university' ? null : formData.faculty_id || null,
+            department_id: formData.scope === 'department' ? formData.department_id || null : null,
+          });
+        } catch (functionError) {
+          const details = functionError instanceof Error ? functionError.message : 'Failed to create user account';
+          const message = typeof details === 'string' ? details : 'Failed to create user account';
+          if (message.toLowerCase().includes('rate limit')) {
+            setError('Too many account creation attempts. Please wait a few minutes and try again.');
+          } else {
+            setError(message);
+          }
           return;
         }
 
-        const { error: insertError } = await supabase.from('users').insert({
-          id: authUser.id,
-          email: formData.email,
-          password_hash: '',
-          role: formData.role,
-          full_name: formData.full_name,
-          username: formData.username || null,
-          scope: formData.scope,
-          faculty_id: formData.scope === 'university' ? null : formData.faculty_id || null,
-          department_id: formData.scope === 'department' ? formData.department_id || null : null,
-          is_email_verified: true,
-          is_face_enrolled: false,
-        });
-
-        if (insertError) {
-          setError('Failed to create user profile');
+        if (!data || (data as any).error) {
+          const message = (data as any)?.error || 'Failed to create user account';
+          setError(message);
           return;
         }
+
         setSuccess('User created successfully!');
       }
 

@@ -1,13 +1,12 @@
 student_id,full_name,email,faculty_code,department_code,status
-<<<<<<< HEAD
-0323080001,John Doe,0323080001@university.edu,FAST,CS,active
-0323080002,Jane Smith,0323080002@university.edu,FAST,CS,active
-0323080003,Michael Johnson,0323080003@university.edu,FAST,ENG,active
-0323080004,Emily Brown,0323080004@university.edu,FAST,ENG,active
-0323080005,David Wilson,0323080005@university.edu,FOE,BME,active
-0323080006,Sarah Davis,0323080006@university.edu,FOE,BME,active
-0323080007,James Miller,0323080007@university.edu,FOE,BME,active
-0323080008,Jennifer Garcia,0323080008@university.edu,FOE,BME,active
+0323080001,John Doe,0323080001@htu.edu.gh,FAST,CS,active
+0323080002,Jane Smith,0323080002@htu.edu.gh,FAST,CS,active
+0323080003,Michael Johnson,0323080003@htu.edu.gh,FAST,ENG,active
+0323080004,Emily Brown,0323080004@htu.edu.gh,FAST,ENG,active
+0323080005,David Wilson,0323080005@htu.edu.gh,FOE,BME,active
+0323080006,Sarah Davis,0323080006@htu.edu.gh,FOE,BME,active
+0323080007,James Miller,0323080007@htu.edu.gh,FOE,BME,active
+0323080008,Jennifer Garcia,0323080008@htu.edu.gh,FOE,BME,active
 0323080009,Robert Martinez,0323080009@university.edu,FAD,FS,active
 0323080010,Lisa Anderson,0323080010@university.edu,FAD,FS,active
 0323080011,William Taylor,0323080011@university.edu,FAD,IA,active

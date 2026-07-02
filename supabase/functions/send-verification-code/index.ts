@@ -34,7 +34,19 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const body: VerificationRequest = await req.json();
+    // Read raw request body first so we can return helpful debug info on parse errors
+    const rawBody = await req.text();
+    let body: VerificationRequest = {} as VerificationRequest;
+    try {
+      body = rawBody ? JSON.parse(rawBody) : ({} as VerificationRequest);
+    } catch (parseErr) {
+      console.error('Failed to parse JSON body for send-verification-code:', parseErr, rawBody);
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body', details: rawBody }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const email = body.email?.trim().toLowerCase();
 
     if (!email || !email.includes("@")) {
@@ -45,7 +57,13 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE");
+    if (!supabaseServiceKey) {
+      return new Response(
+        JSON.stringify({ error: "Supabase service role key is not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
@@ -105,12 +123,32 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const emailProvider = (Deno.env.get("EMAIL_PROVIDER") || "resend").toLowerCase();
+    const sendGridApiKey = Deno.env.get("SENDGRID_API_KEY");
+    const sendGridFromEmail = Deno.env.get("SENDGRID_FROM_EMAIL") || "noreply@yourdomain.com";
+    const mailgunApiKey = Deno.env.get("MAILGUN_API_KEY");
+    const mailgunDomain = Deno.env.get("MAILGUN_DOMAIN");
+    const mailgunFromEmail = Deno.env.get("MAILGUN_FROM_EMAIL") || `noreply@${mailgunDomain || 'yourdomain.com'}`;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "onboarding@resend.dev";
+    const resendFromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "onboarding@resend.dev";
 
-    if (!resendApiKey) {
+    if (emailProvider === "sendgrid" && !sendGridApiKey) {
       return new Response(
-        JSON.stringify({ error: "Resend is not configured on the server" }),
+        JSON.stringify({ error: "SendGrid is not configured on the server", details: "SENDGRID_API_KEY is missing from the edge-function environment" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (emailProvider === "mailgun" && (!mailgunApiKey || !mailgunDomain)) {
+      return new Response(
+        JSON.stringify({ error: "Mailgun is not configured on the server", details: "MAILGUN_API_KEY or MAILGUN_DOMAIN is missing from the edge-function environment" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (emailProvider !== "sendgrid" && emailProvider !== "mailgun" && !resendApiKey) {
+      return new Response(
+        JSON.stringify({ error: "Email provider is not configured on the server", details: "No supported email provider credentials are available" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -144,32 +182,65 @@ Deno.serve(async (req: Request) => {
 
     if (insertError) {
       return new Response(
-        JSON.stringify({ error: "Failed to store verification code" }),
+        JSON.stringify({ error: "Failed to store verification code", details: insertError.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${resendApiKey}`,
-      },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: [email],
-        subject: "Your UEVS verification code",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px;">
-            <h2 style="color: #2563eb; margin-bottom: 12px;">UEVS email verification</h2>
-            <p style="font-size: 16px; color: #374151;">Hello${body.studentName ? ` ${body.studentName}` : ""},</p>
-            <p style="font-size: 16px; color: #374151;">Use the following verification code to continue your registration:</p>
-            <div style="font-size: 32px; font-weight: 700; letter-spacing: 0.2em; margin: 20px 0; color: #111827;">${code}</div>
-            <p style="font-size: 14px; color: #6b7280;">This code expires after one use in this session.</p>
-          </div>
-        `,
-      }),
-    });
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px;">
+        <h2 style="color: #2563eb; margin-bottom: 12px;">UEVS email verification</h2>
+        <p style="font-size: 16px; color: #374151;">Hello${body.studentName ? ` ${body.studentName}` : ""},</p>
+        <p style="font-size: 16px; color: #374151;">Use the following verification code to continue your registration:</p>
+        <div style="font-size: 32px; font-weight: 700; letter-spacing: 0.2em; margin: 20px 0; color: #111827;">${code}</div>
+        <p style="font-size: 14px; color: #6b7280;">This code expires after one use in this session.</p>
+      </div>
+    `;
+
+    let response: Response;
+
+    if (emailProvider === "sendgrid") {
+      response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sendGridApiKey}`,
+        },
+        body: JSON.stringify({
+          personalizations: [{ to: [{ email }] }],
+          from: { email: sendGridFromEmail, name: "UEVS" },
+          subject: "Your UEVS verification code",
+          content: [{ type: "text/html", value: html }],
+        }),
+      });
+    } else if (emailProvider === "mailgun") {
+      response = await fetch(`https://api.mailgun.net/v3/${mailgunDomain}/messages`, {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${btoa(`api:${mailgunApiKey}`)}`,
+        },
+        body: new URLSearchParams({
+          from: `UEVS <${mailgunFromEmail}>`,
+          to: email,
+          subject: "Your UEVS verification code",
+          html,
+        }),
+      });
+    } else {
+      response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${resendApiKey}`,
+        },
+        body: JSON.stringify({
+          from: resendFromEmail,
+          to: [email],
+          subject: "Your UEVS verification code",
+          html,
+        }),
+      });
+    }
 
     if (!response.ok) {
       const errorData = await response.text();
@@ -184,9 +255,10 @@ Deno.serve(async (req: Request) => {
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Verification email error", error);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Verification email error", message);
     return new Response(
-      JSON.stringify({ error: "Unexpected server error" }),
+      JSON.stringify({ error: "Unexpected server error", details: message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

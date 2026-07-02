@@ -52,7 +52,7 @@ export function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Location</h3>
-                    <p className="text-gray-600">University Campus, Main Administration Building, Ground Floor</p>
+                    <p className="text-gray-600">Ho Technical University</p>
                   </div>
                 </div>
 
@@ -62,8 +62,8 @@ export function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                    <p className="text-gray-600">voting@university.edu</p>
-                    <p className="text-gray-600">support@university.edu</p>
+                    <p className="text-gray-600">gridnexus.gh@gmail.com</p>
+                    <p className="text-gray-600">gridnexus.gh@gmail.com</p>
                   </div>
                 </div>
 
@@ -73,8 +73,8 @@ export function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
-                    <p className="text-gray-600">+233 123 456 789</p>
-                    <p className="text-gray-600">+233 987 654 321</p>
+                    <p className="text-gray-600">+233 243 404 515</p>
+                    <p className="text-gray-600">+233 243 404 515</p>
                   </div>
                 </div>
 

@@ -21,7 +21,7 @@ export function Header() {
     if (!user) return "/login";
     switch (user.role) {
       case "admin":
-        return "/admin/dashboard";
+        return "/admin";
       case "election_officer":
         return "/election-officer/dashboard";
       case "auditor":

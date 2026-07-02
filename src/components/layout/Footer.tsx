@@ -66,15 +66,15 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <span className="text-gray-400 text-sm">University Campus, Main Administration Building</span>
+                <span className="text-gray-400 text-sm">Ho Technical University</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-blue-500 flex-shrink-0" />
-                <span className="text-gray-400 text-sm">+233 123 456 789</span>
+                <span className="text-gray-400 text-sm">+233 243 404 515</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-blue-500 flex-shrink-0" />
-                <span className="text-gray-400 text-sm">voting@university.edu</span>
+                <span className="text-gray-400 text-sm">gridnexus.gh@gmail.com</span>
               </li>
             </ul>
           </div>
@@ -83,7 +83,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-gray-800">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-500 text-sm">
-              © {new Date().getFullYear()} University Electronic Voting System. All rights reserved.
+              © {new Date().getFullYear()}  Electronic Voting System. All rights reserved.
             </p>
             <div className="flex gap-6">
               <a href="#" className="text-gray-500 hover:text-white text-sm transition-colors">Privacy</a>

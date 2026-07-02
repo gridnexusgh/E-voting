@@ -26,13 +26,6 @@ interface FormData {
   confirmPassword: string;
 }
 
-interface VerificationState {
-  codeSent: boolean;
-  code: string;
-  verified: boolean;
-  emailSentAt?: number;
-}
-
 export function RegisterPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -52,12 +45,6 @@ export function RegisterPage() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [studentName, setStudentName] = useState('');
-  const [cooldownSeconds, setCooldownSeconds] = useState(0);
-  const [verification, setVerification] = useState<VerificationState>({
-    codeSent: false,
-    code: '',
-    verified: false,
-  });
 
   useEffect(() => {
     loadFaculties();
@@ -70,16 +57,6 @@ export function RegisterPage() {
       setDepartments([]);
     }
   }, [formData.facultyId]);
-
-  useEffect(() => {
-    if (cooldownSeconds <= 0) return;
-
-    const timer = window.setInterval(() => {
-      setCooldownSeconds((prev) => (prev > 1 ? prev - 1 : 0));
-    }, 1000);
-
-    return () => window.clearInterval(timer);
-  }, [cooldownSeconds]);
 
   async function loadFaculties() {
     try {
@@ -132,14 +109,21 @@ export function RegisterPage() {
     try {
       const { data: student, error } = await supabase
         .from('student_records')
-        .select('*, faculties!student_records_faculty_id_fkey(name), departments!student_records_department_id_fkey(name)')
+        .select('id, student_id, full_name, email, faculty_id, department_id, status')
         .eq('student_id', formData.studentId)
-        .eq('faculty_id', formData.facultyId)
-        .eq('department_id', formData.departmentId)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
 
       if (error || !student) {
+        setErrors({ studentId: 'Student record not found. Please verify your details.' });
+        return;
+      }
+
+      if (
+        student.faculty_id &&
+        student.department_id &&
+        (student.faculty_id !== formData.facultyId || student.department_id !== formData.departmentId)
+      ) {
         setErrors({ studentId: 'Student record not found. Please verify your details.' });
         return;
       }
@@ -148,7 +132,7 @@ export function RegisterPage() {
         .from('users')
         .select('id')
         .eq('student_record_id', student.id)
-        .single();
+        .maybeSingle();
 
       if (existingUser) {
         setErrors({ studentId: 'This student ID is already registered. Please log in.' });
@@ -181,11 +165,22 @@ export function RegisterPage() {
     return null;
   }
 
-  async function sendVerificationCode() {
+  async function sendConfirmationEmail() {
     setErrors({});
 
     if (!formData.email.trim()) {
       setErrors({ email: 'Email is required' });
+      return;
+    }
+
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) {
+      setErrors({ password: passwordError });
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setErrors({ confirmPassword: 'Passwords do not match' });
       return;
     }
 
@@ -198,179 +193,85 @@ export function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('send-verification-code', {
-        body: {
-          email: normalizedEmail,
-          studentId: formData.studentId,
-          studentName,
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/verify-email`,
         },
       });
 
-      if (error || !data?.success) {
-        const cooldown = data?.cooldownSeconds;
-        if (cooldown) {
-          setCooldownSeconds(cooldown);
-        }
-        setErrors({ form: error?.message || data?.error || 'Failed to send verification code' });
+      if (signUpError) {
+        setErrors({ form: signUpError.message || 'Unable to send confirmation email. Please check your Supabase Auth email settings.' });
         return;
       }
 
-      setVerification({
-        codeSent: true,
-        code: '',
-        verified: false,
-        emailSentAt: Date.now(),
-      });
-      setCooldownSeconds(60);
+      if (!data.user) {
+        setErrors({ form: 'Confirmation email was not created. Please check your Supabase Auth email settings.' });
+        return;
+      }
+
       setErrors({});
-      setStep(3);
-    } catch {
-      setErrors({ form: 'Unable to send verification code. Please try again.' });
+      setStep(3); // show "Check your email" step
     } finally {
       setIsLoading(false);
     }
   }
 
   async function verifyEmailCode() {
+    // With Supabase built-in confirmation we no longer verify codes here.
+    // Instead, attempt to sign in to check whether the user has confirmed their email.
     setErrors({});
-
-    if (!verification.code.trim()) {
-      setErrors({ code: 'Please enter the verification code' });
-      return;
-    }
-
-    if (verification.code.trim().length !== 6) {
-      setErrors({ code: 'Verification code must be 6 digits' });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('send-verification-code', {
-        body: {
-          email: normalizeEmail(formData.email),
-          studentId: formData.studentId,
-          studentName,
-          verifyCode: verification.code.trim(),
-        },
-      });
-
-      if (error || !data?.success) {
-        setErrors({ code: error?.message || data?.error || 'Verification failed' });
-        return;
-      }
-
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ is_email_verified: true })
-        .eq('student_record_id', (await supabase.from('student_records').select('id').eq('student_id', formData.studentId).single()).data?.id);
-
-      if (updateError) {
-        setErrors({ form: 'Verification succeeded, but your account could not be finalized. Please try again.' });
-        return;
-      }
-
-      setVerification((prev) => ({ ...prev, verified: true }));
-      setStep(4);
-    } catch {
-      setErrors({ code: 'Verification failed. Please try again.' });
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function handleRegister() {
-    setErrors({});
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else {
-      const normalizedEmail = normalizeEmail(formData.email);
-      if (!normalizedEmail.startsWith('032') || !normalizedEmail.includes('@')) {
-        newErrors.email = 'Please use your university email (e.g., 032xxxx or 032xxxx@htu.edu.gh)';
-      }
-    }
-
-    const passwordError = validatePassword(formData.password);
-    if (passwordError) {
-      newErrors.password = passwordError;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
     setIsLoading(true);
 
     try {
       const normalizedEmail = normalizeEmail(formData.email);
-
-      const { data: studentRecord } = await supabase
-        .from('student_records')
-        .select('id, email')
-        .eq('student_id', formData.studentId)
-        .single();
-
-      if (!studentRecord || normalizeEmail(studentRecord.email) !== normalizedEmail) {
-        setErrors({ email: 'Email does not match our student records' });
-        return;
-      }
-
-      const { data: { user: authUser } = {}, error: signUpError } = await supabase.auth.signUp({
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
         password: formData.password,
-        options: {
-          data: {
-            email_confirm: true,
-          },
-        },
       });
 
-      if (signUpError) {
-        setErrors({ form: signUpError.message });
+      if (signInError) {
+        setErrors({ form: 'Email not yet confirmed. Please check your inbox for the confirmation link.' });
         return;
       }
 
-      if (authUser) {
-        const { error: insertError } = await supabase.from('users').insert({
-          email: normalizedEmail,
-          password_hash: '',
-          role: 'student',
-          full_name: studentName,
-          student_record_id: studentRecord.id,
-          faculty_id: formData.facultyId,
-          department_id: formData.departmentId,
-          is_email_verified: true,
-          is_face_enrolled: false,
-        });
+      // Insert profile row now that the user is authenticated
+      const { data: studentRecord } = await supabase
+        .from('student_records')
+        .select('id')
+        .eq('student_id', formData.studentId)
+        .maybeSingle();
 
-        if (insertError) {
-          setErrors({ form: 'Failed to create account. Please try again.' });
+      const profile = {
+        id: signInData.user?.id,
+        email: normalizedEmail,
+        password_hash: '',
+        role: 'student',
+        full_name: studentName,
+        student_record_id: studentRecord?.id || null,
+        faculty_id: formData.facultyId,
+        department_id: formData.departmentId,
+        is_email_verified: true,
+        is_face_enrolled: false,
+      };
+
+      const { error: insertError } = await supabase.from('users').insert(profile);
+      if (insertError) {
+        // If profile already exists, try updating is_email_verified
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ is_email_verified: true })
+          .eq('id', signInData.user?.id);
+
+        if (updateError) {
+          setErrors({ form: 'Signed in but failed to finalize account. Please try again.' });
           return;
         }
-
-
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: normalizedEmail,
-          password: formData.password,
-        });
-
-        if (signInError) {
-          // Redirect to login if auto sign-in fails
-          navigate('/login');
-          return;
-        }
-
-        // Redirect to face enrollment
-        navigate('/face-enrollment');
       }
+
+      // Redirect to face enrollment
+      navigate('/face-enrollment');
     } finally {
       setIsLoading(false);
     }
@@ -420,7 +321,7 @@ export function RegisterPage() {
                 { num: 1, label: 'Academic Info' },
                 { num: 2, label: 'Account Setup' },
                 { num: 3, label: 'Verify Email' },
-              ].map((s, idx) => (
+              ].map((s) => (
                 <div key={s.num} className="flex flex-1 flex-col items-center">
                   <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold ${step >= s.num ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
                     {step > s.num ? <CheckCircle2 className="h-5 w-5" /> : s.num}
@@ -676,7 +577,7 @@ export function RegisterPage() {
                     <span>Back</span>
                   </button>
                   <button
-                    onClick={sendVerificationCode}
+                    onClick={sendConfirmationEmail}
                     disabled={isLoading}
                     className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-semibold transition-colors shadow-md"
                   >
@@ -687,7 +588,7 @@ export function RegisterPage() {
                       </>
                     ) : (
                       <>
-                        <span>Send Code</span>
+                        <span>Send confirmation email</span>
                         <ArrowRight className="w-5 h-5" />
                       </>
                     )}
@@ -702,28 +603,12 @@ export function RegisterPage() {
               <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Mail className="w-10 h-10 text-blue-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Verify Your Email</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Check Your Email</h2>
               <p className="text-gray-600 mb-6 max-w-sm mx-auto">
-                We sent a 6-digit verification code to <span className="font-medium text-gray-900">{formData.email}</span>.
+                We sent a confirmation link to <span className="font-medium text-gray-900">{formData.email}</span>. Click the link to confirm your email, then return here and click <span className="font-medium">I have confirmed</span>.
               </p>
 
               <div className="space-y-4 text-left">
-                <div>
-                  <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-2">
-                    Enter verification code
-                  </label>
-                  <input
-                    id="verificationCode"
-                    type="text"
-                    inputMode="numeric"
-                    value={verification.code}
-                    onChange={(e) => setVerification((prev) => ({ ...prev, code: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                    className={`w-full px-4 py-3.5 rounded-xl border ${errors.code ? 'border-red-500' : 'border-gray-300'} focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all`}
-                    placeholder="123456"
-                  />
-                  {errors.code && <p className="mt-1.5 text-sm text-red-600">{errors.code}</p>}
-                </div>
-
                 <button
                   onClick={verifyEmailCode}
                   disabled={isLoading}
@@ -732,61 +617,26 @@ export function RegisterPage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Verifying...</span>
+                      <span>Checking...</span>
                     </>
                   ) : (
                     <>
-                      <span>Verify Code</span>
+                      <span>I have confirmed</span>
                       <ArrowRight className="w-5 h-5" />
                     </>
                   )}
                 </button>
 
-                <button
-                  onClick={sendVerificationCode}
-                  disabled={isLoading || cooldownSeconds > 0}
-                  className="w-full text-sm text-blue-600 hover:text-blue-700 font-semibold disabled:text-gray-400"
-                >
-                  {cooldownSeconds > 0 ? `Resend code in 00:${String(cooldownSeconds).padStart(2, '0')}` : 'Resend code'}
-                </button>
-              </div>
+</div>
 
               <div className="bg-gray-50 rounded-xl p-4 mt-6">
                 <p className="text-sm text-gray-500">
-                  After verification, you'll need to complete facial enrollment to activate your voting access.
+                  After confirming, you'll need to complete facial enrollment to activate your voting access.
                 </p>
               </div>
             </div>
           )}
 
-          {step === 4 && (
-            <div className="text-center py-8">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 className="w-10 h-10 text-green-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Email verified</h2>
-              <p className="text-gray-600 mb-6 max-w-sm mx-auto">
-                Your email is verified. You can now create your account.
-              </p>
-              <button
-                onClick={handleRegister}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-semibold transition-colors shadow-md"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Creating...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Create Account</span>
-                    <ArrowRight className="w-5 h-5" />
-                  </>
-                )}
-              </button>
-            </div>
-          )}
         </div>
 
             {step < 3 && (

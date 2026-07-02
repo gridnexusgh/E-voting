@@ -62,6 +62,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function getUserProfile(authUser: { id: string; email?: string | null }) {
+    const { data: userById, error: userByIdError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", authUser.id)
+      .maybeSingle();
+
+    if (!userByIdError && userById) {
+      return { data: userById, error: null };
+    }
+
+    if (!authUser.email) {
+      return { data: null, error: userByIdError };
+    }
+
+    const { data: userByEmail, error: userByEmailError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", authUser.email)
+      .maybeSingle();
+
+    if (!userByEmailError && userByEmail) {
+      return { data: userByEmail, error: null };
+    }
+
+    return { data: null, error: userByEmailError ?? userByIdError };
+  }
+
   async function fetchUserData() {
     try {
       const {
@@ -72,11 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const { data: userData, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", authUser.id)
-        .single();
+      const { data: userData, error } = await getUserProfile(authUser);
 
       if (error || !userData) {
         setState({ user: null, isLoading: false, isAuthenticated: false });
@@ -112,11 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } = await supabase.auth.getUser();
       if (!authUser) return { error: "Authentication failed" };
 
-      const { data: userData, error: userError } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", authUser.id)
-        .single();
+      const { data: userData, error: userError } = await getUserProfile(authUser);
 
       if (userError || !userData) {
         return { error: "User profile not found" };
@@ -130,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await supabase
         .from("users")
         .update({ last_login: new Date().toISOString() })
-        .eq("id", authUser.id);
+        .eq("id", userData.id);
 
       setState({
         user: userData as User,

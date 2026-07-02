@@ -13,6 +13,13 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { FaceEnrollmentPage } from "./pages/FaceEnrollmentPage";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import { AdminLayout } from "./pages/admin/AdminLayout";
+import { FacultyManagement } from "./pages/admin/FacultyManagement";
+import { DepartmentManagement } from "./pages/admin/DepartmentManagement";
+import { UserManagement } from "./pages/admin/UserManagement";
+import { StudentImport } from "./pages/admin/StudentImport";
+import { AuditOverview } from "./pages/admin/AuditOverview";
+import { SystemSettings } from "./pages/admin/SystemSettings";
 import { ElectionOfficerDashboard } from "./pages/ElectionOfficerDashboard";
 import { StudentDashboard } from "./pages/student";
 import { AuditorDashboard } from "./pages/AuditorDashboard";
@@ -43,9 +50,7 @@ function ProtectedRoute({
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
     const dashboardRoutes: Record<string, string> = {
-      admin: "/admin/dashboard",
-      election_officer: "/election-officer/dashboard",
-      auditor: "/auditor/dashboard",
+      admin: "/admin",
       student: "/student/dashboard",
     };
     return <Navigate to={dashboardRoutes[user.role] || "/"} replace />;
@@ -59,7 +64,7 @@ function PublicRoute({ children }: { children: ReactNode }) {
 
   if (isAuthenticated && user) {
     const dashboardRoutes: Record<string, string> = {
-      admin: "/admin/dashboard",
+      admin: "/admin",
       election_officer: "/election-officer/dashboard",
       auditor: "/auditor/dashboard",
       student: "/student/dashboard",
@@ -173,13 +178,21 @@ function AppRoutes() {
 
       {/* Admin Routes */}
       <Route
-        path="/admin/dashboard/*"
+        path="/admin/*"
         element={
           <ProtectedRoute allowedRoles={["admin"]}>
-            <AdminDashboard />
+            <AdminLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<AdminDashboard />} />
+        <Route path="faculties" element={<FacultyManagement />} />
+        <Route path="departments" element={<DepartmentManagement />} />
+        <Route path="users" element={<UserManagement onUserCreated={() => {}} />} />
+        <Route path="students/import" element={<StudentImport onImport={() => {}} />} />
+        <Route path="audit" element={<AuditOverview />} />
+        <Route path="settings" element={<SystemSettings />} />
+      </Route>
 
       {/* Election Officer Routes */}
       <Route
