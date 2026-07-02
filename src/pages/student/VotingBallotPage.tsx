@@ -202,14 +202,11 @@ export function VotingBallotPage({
     <div className="min-h-full p-4 sm:p-6 lg:p-8 space-y-10">
       <style>{`
         @keyframes slideIntoBox {
-          0%   { transform: translate(-50%, -18px) rotateX(0deg); opacity: 1; }
-          20%  { transform: translate(-50%, 0) rotateX(0deg); opacity: 1; }
-          70%  { transform: translate(-50%, 70px) rotateX(12deg); opacity: 0.95; }
-          100% { transform: translate(-50%, 140px) rotateX(22deg); opacity: 0; }
+          0%   { transform: translateY(0); opacity: 1; }
+          100% { transform: translateY(82px); opacity: 1; }
         }
         .animate-slide-into-box {
-          animation: slideIntoBox 500ms cubic-bezier(0.55, 0.05, 0.4, 1) forwards;
-          transform-origin: top center;
+          animation: slideIntoBox 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
       `}</style>
       {/* Header greeting */}
@@ -237,81 +234,50 @@ export function VotingBallotPage({
 
       {/* Candidate deck */}
       <div className="flex flex-wrap justify-center gap-5">
-        {activePortfolio.candidates.map((candidate) => {
-          const isDragging = draggedCandidate?.id === candidate.id;
-          const isVoted = votedCandidate?.id === candidate.id;
-          const hide = isVoted && votingState !== "idle";
-          return (
-            <div
-              key={candidate.id}
-              draggable={votingState === "idle"}
-              onDragStart={() => handleDragStart(candidate)}
-              onDragEnd={handleDragEnd}
-              className={`bg-white rounded-xl border border-slate-100 p-6 shadow-sm flex flex-col items-center justify-between text-center transition-all duration-200 hover:shadow-md hover:scale-[1.02] w-52 ${
-                votingState === "idle"
-                  ? "cursor-grab active:cursor-grabbing"
-                  : "cursor-not-allowed opacity-70"
-              } ${isDragging ? "opacity-40" : ""} ${
-                hide ? "invisible" : ""
-              }`}
-            >
-              <div className="w-20 h-20 rounded-full border-2 border-[#0E1E38]/20 bg-slate-50 overflow-hidden flex items-center justify-center">
-                {candidate.avatarUrl ? (
-                  <img
-                    src={candidate.avatarUrl}
-                    alt={candidate.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <UserIcon className="w-10 h-10 text-slate-400" />
-                )}
-              </div>
-              <h3 className="mt-4 font-bold text-[#0E1E38] text-base">
-                {candidate.name}
-              </h3>
-              <p className="mt-1 text-xs italic text-slate-500">
-                {candidate.slogan}
-              </p>
-            </div>
-          );
+...
         })}
       </div>
 
       {/* Ballot box */}
-      <div className="flex justify-center pt-6">
-        <div
-          ref={ballotBoxRef}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleBallotDrop}
-          className={`bg-[#0E1E38] rounded-2xl w-80 h-44 shadow-lg flex flex-col items-center justify-center relative overflow-hidden transition-all duration-200 ${
-            draggedCandidate
-              ? "ring-4 ring-blue-300 scale-[1.02]"
-              : ""
-          }`}
-        >
-          {/* Slot line */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-40 h-1.5 bg-white/90 rounded-full shadow-inner z-10" />
-
-          {/* Sliding ballot paper token — starts centered on slot, drops into box */}
+      <div className="flex justify-center mt-16">
+        <div className="relative">
+          {/* Masked overlay: clips the ballot as it crosses the slot line */}
           {votingState === "sliding" && votedCandidate && (
             <div
-              className="absolute left-1/2 top-4 w-40 h-12 rounded-sm bg-white shadow-lg flex items-center justify-center text-[11px] font-semibold text-[#0E1E38] animate-slide-into-box"
-              style={{
-                backgroundImage:
-                  "repeating-linear-gradient(180deg, #ffffff 0 6px, #f1f5f9 6px 7px)",
-                borderTop: "2px solid #e2e8f0",
-              }}
+              className="absolute left-1/2 -translate-x-1/2 overflow-hidden pointer-events-none z-20"
+              style={{ top: "-60px", height: "82px", width: "10rem" }}
             >
-              <span className="px-2 truncate">{votedCandidate.name}</span>
+              <div
+                className="absolute top-0 left-0 w-40 h-12 rounded-sm bg-white shadow-lg flex items-center justify-center text-[11px] font-semibold text-[#0E1E38] animate-slide-into-box"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(180deg, #ffffff 0 6px, #f1f5f9 6px 7px)",
+                  borderTop: "2px solid #e2e8f0",
+                }}
+              >
+                <span className="px-2 truncate">{votedCandidate.name}</span>
+              </div>
             </div>
           )}
 
-          <p className="text-white font-bold tracking-[0.25em] text-lg mt-4">
-            DROP HERE
-          </p>
-          <p className="text-blue-200/70 text-[10px] tracking-widest mt-2">
-            HTU DIGITAL BALLOT BOX
-          </p>
+          <div
+            ref={ballotBoxRef}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleBallotDrop}
+            className={`bg-[#0E1E38] rounded-2xl w-80 h-44 shadow-lg flex flex-col items-center justify-center relative overflow-hidden transition-all duration-200 ${
+              draggedCandidate ? "ring-4 ring-blue-300 scale-[1.02]" : ""
+            }`}
+          >
+            {/* Slot line */}
+            <div className="absolute top-5 left-1/2 -translate-x-1/2 w-40 h-1.5 bg-white/90 rounded-full shadow-inner z-10" />
+
+            <p className="text-white font-bold tracking-[0.25em] text-lg mt-4">
+              DROP HERE
+            </p>
+            <p className="text-blue-200/70 text-[10px] tracking-widest mt-2">
+              HTU DIGITAL BALLOT BOX
+            </p>
+          </div>
         </div>
       </div>
 
