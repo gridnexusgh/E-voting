@@ -199,7 +199,7 @@ export function VotingBallotPage({
   // Main ballot UI
   // ============================================================
   return (
-    <div className="min-h-full p-4 sm:p-6 lg:p-8 space-y-10">
+    <div className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8 pb-12 space-y-10">
       <style>{`
         @keyframes slideIntoBox {
           0%   { transform: translateY(0); opacity: 1; }
@@ -274,8 +274,12 @@ export function VotingBallotPage({
         })}
       </div>
 
+      {/* Forced spacer between candidate deck and ballot box */}
+      <div className="w-full clear-both" style={{ height: '70px' }} />
+
       {/* Ballot box */}
-      <div className="flex justify-center mt-16">
+      <div className="flex justify-center">
+
         <div className="relative">
           {/* Masked overlay: clips the ballot as it crosses the slot line */}
           {votingState === "sliding" && votedCandidate && (
