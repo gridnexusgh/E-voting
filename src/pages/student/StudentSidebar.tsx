@@ -166,10 +166,11 @@ export function StudentSidebar({
               {menuLabel("Slots")}
             </span>
             {!collapsed && (
-              <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded">
+              <span className="text-[10px] font-bold bg-red-500/20 border border-red-400/30 text-red-300 px-2 py-0.5 rounded-full backdrop-blur">
                 CLOSED
               </span>
             )}
+
           </button>
 
           <button
