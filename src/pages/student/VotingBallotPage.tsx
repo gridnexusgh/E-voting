@@ -234,7 +234,43 @@ export function VotingBallotPage({
 
       {/* Candidate deck */}
       <div className="flex flex-wrap justify-center gap-5">
-...
+        {activePortfolio.candidates.map((candidate) => {
+          const isDragging = draggedCandidate?.id === candidate.id;
+          const isVoted = votedCandidate?.id === candidate.id;
+          const hide = isVoted && votingState !== "idle";
+          return (
+            <div
+              key={candidate.id}
+              draggable={votingState === "idle"}
+              onDragStart={() => handleDragStart(candidate)}
+              onDragEnd={handleDragEnd}
+              className={`bg-white rounded-xl border border-slate-100 p-6 shadow-sm flex flex-col items-center justify-between text-center transition-all duration-200 hover:shadow-md hover:scale-[1.02] w-52 ${
+                votingState === "idle"
+                  ? "cursor-grab active:cursor-grabbing"
+                  : "cursor-not-allowed opacity-70"
+              } ${isDragging ? "opacity-40" : ""} ${
+                hide ? "invisible" : ""
+              }`}
+            >
+              <div className="w-20 h-20 rounded-full border-2 border-[#0E1E38]/20 bg-slate-50 overflow-hidden flex items-center justify-center">
+                {candidate.avatarUrl ? (
+                  <img
+                    src={candidate.avatarUrl}
+                    alt={candidate.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <UserIcon className="w-10 h-10 text-slate-400" />
+                )}
+              </div>
+              <h3 className="mt-4 font-bold text-[#0E1E38] text-base">
+                {candidate.name}
+              </h3>
+              <p className="mt-1 text-xs italic text-slate-500">
+                {candidate.slogan}
+              </p>
+            </div>
+          );
         })}
       </div>
 
