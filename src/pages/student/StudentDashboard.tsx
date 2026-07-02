@@ -61,7 +61,7 @@ export function StudentDashboard() {
           ) : (
           <>
           {/* Welcome Hero */}
-          <section className="relative overflow-hidden rounded-2xl p-6 sm:p-8 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 text-white shadow-lg">
+          <section className="relative overflow-hidden rounded-2xl p-6 sm:p-8 bg-gradient-to-r from-[#0C1E4E] to-[#0E1E38] text-white shadow-lg">
             <div className="absolute -right-10 -top-10 w-64 h-64 rounded-full bg-white/10" />
             <div className="absolute right-20 bottom-0 w-40 h-40 rounded-full bg-white/5" />
             <div className="relative">
@@ -87,7 +87,7 @@ export function StudentDashboard() {
           <section className="relative bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-gray-500 text-lg">Student Profile</h3>
-              <span className="inline-flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-3 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1.5 bg-emerald-500 text-white text-sm font-medium px-3 py-1 rounded-full">
                 <span className="w-2 h-2 rounded-full bg-white" />
                 Active
               </span>
@@ -95,7 +95,7 @@ export function StudentDashboard() {
 
             <div className="flex flex-col items-center text-center">
               <div className="relative">
-                <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full border-4 border-blue-600 overflow-hidden bg-gray-100">
+                <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full border-2 border-[#0C1E4E] overflow-hidden bg-gray-100">
                   <img
                     src="https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?w=400&h=400&fit=crop&crop=face"
                     alt="Student"
