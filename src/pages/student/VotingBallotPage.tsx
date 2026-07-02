@@ -200,6 +200,17 @@ export function VotingBallotPage({
   // ============================================================
   return (
     <div className="min-h-full p-4 sm:p-6 lg:p-8 space-y-6">
+      <style>{`
+        @keyframes slideIntoBox {
+          0%   { transform: translate(-50%, 0) rotateX(0deg); opacity: 1; }
+          60%  { transform: translate(-50%, 60px) rotateX(15deg); opacity: 1; }
+          100% { transform: translate(-50%, 120px) rotateX(25deg); opacity: 0; }
+        }
+        .animate-slide-into-box {
+          animation: slideIntoBox 500ms cubic-bezier(0.55, 0.05, 0.4, 1) forwards;
+          transform-origin: top center;
+        }
+      `}</style>
       {/* Header greeting */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 px-6 py-5">
         <h1 className="text-xl sm:text-2xl font-bold text-[#0E1E38] text-center">
