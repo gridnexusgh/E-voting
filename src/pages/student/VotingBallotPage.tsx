@@ -199,12 +199,13 @@ export function VotingBallotPage({
   // Main ballot UI
   // ============================================================
   return (
-    <div className="min-h-full p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="min-h-full p-4 sm:p-6 lg:p-8 space-y-10">
       <style>{`
         @keyframes slideIntoBox {
-          0%   { transform: translate(-50%, 0) rotateX(0deg); opacity: 1; }
-          60%  { transform: translate(-50%, 60px) rotateX(15deg); opacity: 1; }
-          100% { transform: translate(-50%, 120px) rotateX(25deg); opacity: 0; }
+          0%   { transform: translate(-50%, -18px) rotateX(0deg); opacity: 1; }
+          20%  { transform: translate(-50%, 0) rotateX(0deg); opacity: 1; }
+          70%  { transform: translate(-50%, 70px) rotateX(12deg); opacity: 0.95; }
+          100% { transform: translate(-50%, 140px) rotateX(22deg); opacity: 0; }
         }
         .animate-slide-into-box {
           animation: slideIntoBox 500ms cubic-bezier(0.55, 0.05, 0.4, 1) forwards;
