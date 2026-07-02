@@ -43,7 +43,7 @@ export function StudentDashboard() {
   const fullName = user?.full_name?.toUpperCase() || "STUDENT NAME";
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gradient-to-r from-[#0C1E4E] to-[#0E1E38] text-white">
       <StudentSidebar
         collapsed={sidebarCollapsed}
         activeItem={activeItem}
@@ -61,18 +61,19 @@ export function StudentDashboard() {
           ) : (
           <>
           {/* Welcome Hero */}
-          <section className="relative overflow-hidden rounded-2xl p-6 sm:p-8 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 text-white shadow-lg">
-            <div className="absolute -right-10 -top-10 w-64 h-64 rounded-full bg-white/10" />
+          <section className="relative overflow-hidden rounded-2xl p-6 sm:p-8 bg-white/5 backdrop-blur-md border border-white/10 shadow-xl text-white">
+            <div className="absolute -right-10 -top-10 w-64 h-64 rounded-full bg-white/5" />
             <div className="absolute right-20 bottom-0 w-40 h-40 rounded-full bg-white/5" />
             <div className="relative">
               <h2 className="text-2xl sm:text-3xl font-bold">
                 Welcome Back, {firstName}
                 <span className="italic">!</span>
               </h2>
-              <p className="mt-3 flex items-center gap-2 text-blue-50">
-                <span className="w-2 h-2 rounded-full bg-blue-200" />
+              <p className="mt-3 flex items-center gap-2 text-slate-300">
+                <span className="w-2 h-2 rounded-full bg-blue-300" />
                 Computer Science Department Election Ongoing
               </p>
+
               <button
                 onClick={() => setActiveItem("vote")}
                 className="mt-4 inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur px-4 py-1.5 rounded-full text-sm font-semibold transition-colors"
