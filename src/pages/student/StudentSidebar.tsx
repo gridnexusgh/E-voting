@@ -36,8 +36,9 @@ export function StudentSidebar({
   const paddedRow = collapsed
     ? "px-3 py-3 justify-center"
     : "px-4 py-3 justify-start";
-  const activeClass = "bg-white text-blue-700 shadow-md";
-  const idleClass = "text-blue-100 hover:bg-blue-800/60 hover:text-white";
+  const activeClass = "bg-white/15 text-white border border-white/20 shadow-md backdrop-blur";
+  const idleClass = "text-slate-300 hover:bg-white/10 hover:text-white";
+
 
   const menuLabel = (text: string) => (
     <span
