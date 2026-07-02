@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pencil, ArrowRight } from "lucide-react";
 import { StudentSidebar } from "./StudentSidebar";
 import { StudentHeader } from "./StudentHeader";
+import { VotingBallotPage } from "./VotingBallotPage";
 import { useAuth } from "../../contexts/AuthContext";
 
 const votingSteps = [
@@ -55,6 +56,10 @@ export function StudentDashboard() {
         />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
+          {activeItem === "vote" ? (
+            <VotingBallotPage onExit={() => setActiveItem("dashboard")} />
+          ) : (
+          <>
           {/* Welcome Hero */}
           <section className="relative overflow-hidden rounded-2xl p-6 sm:p-8 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 text-white shadow-lg">
             <div className="absolute -right-10 -top-10 w-64 h-64 rounded-full bg-white/10" />
@@ -68,7 +73,10 @@ export function StudentDashboard() {
                 <span className="w-2 h-2 rounded-full bg-blue-200" />
                 Computer Science Department Election Ongoing
               </p>
-              <button className="mt-4 inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur px-4 py-1.5 rounded-full text-sm font-semibold transition-colors">
+              <button
+                onClick={() => setActiveItem("vote")}
+                className="mt-4 inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur px-4 py-1.5 rounded-full text-sm font-semibold transition-colors"
+              >
                 <span className="w-2 h-2 rounded-full bg-white" />
                 VOTE
               </button>
@@ -134,12 +142,17 @@ export function StudentDashboard() {
             </ol>
 
             <div className="flex justify-end mt-8">
-              <button className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg transition-colors">
+              <button
+                onClick={() => setActiveItem("vote")}
+                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full shadow-lg transition-colors"
+              >
                 Vote Now!
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           </section>
+          </>
+          )}
         </main>
       </div>
     </div>
