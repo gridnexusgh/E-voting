@@ -74,6 +74,18 @@ export function StudentDashboard() {
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
           {activeItem === "vote" ? (
             <VotingBallotPage onExit={() => setActiveItem("dashboard")} />
+          ) : activeItem === "general" ? (
+            <GeneralElectionResult />
+          ) : activeItem === "faculty" ? (
+            <FacultyElectionResult />
+          ) : activeItem === "department" ? (
+            <DepartmentElectionResult />
+          ) : activeItem === "slots" ? (
+            <StudentSlotsPage />
+          ) : activeItem === "announcement" ? (
+            <AnnouncementPage />
+          ) : activeItem === "reset-password" ? (
+            <ResetPasswordPage />
           ) : (
           <>
           {/* Welcome Hero */}
