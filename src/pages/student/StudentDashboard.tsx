@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pencil, ArrowRight } from "lucide-react";
 import { StudentSidebar } from "./StudentSidebar";
 import { StudentHeader } from "./StudentHeader";
+import { VotingBallotPage } from "./VotingBallotPage";
 import { useAuth } from "../../contexts/AuthContext";
 
 const votingSteps = [
