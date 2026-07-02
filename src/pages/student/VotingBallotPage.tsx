@@ -278,7 +278,7 @@ export function VotingBallotPage({
       </div>
 
       {/* Ballot box */}
-      <div className="flex justify-center pt-4">
+      <div className="flex justify-center pt-6">
         <div
           ref={ballotBoxRef}
           onDragOver={(e) => e.preventDefault()}
@@ -290,12 +290,12 @@ export function VotingBallotPage({
           }`}
         >
           {/* Slot line */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-40 h-1.5 bg-white/90 rounded-full shadow-inner" />
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-40 h-1.5 bg-white/90 rounded-full shadow-inner z-10" />
 
-          {/* Sliding ballot paper token */}
+          {/* Sliding ballot paper token — starts centered on slot, drops into box */}
           {votingState === "sliding" && votedCandidate && (
             <div
-              className="absolute left-1/2 top-2 w-40 h-12 -translate-x-1/2 rounded-sm bg-white shadow-lg flex items-center justify-center text-[11px] font-semibold text-[#0E1E38] animate-slide-into-box"
+              className="absolute left-1/2 top-4 w-40 h-12 rounded-sm bg-white shadow-lg flex items-center justify-center text-[11px] font-semibold text-[#0E1E38] animate-slide-into-box"
               style={{
                 backgroundImage:
                   "repeating-linear-gradient(180deg, #ffffff 0 6px, #f1f5f9 6px 7px)",
