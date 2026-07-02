@@ -195,6 +195,10 @@ function AppRoutes() {
       <Route path="/student" element={<StudentDashboard />} />
       <Route path="/student/dashboard" element={<StudentDashboard />} />
 
+      {/* Isolated hackathon student workspace route */}
+      <Route path="/student-portal" element={<StudentDashboard />} />
+      <Route path="/student-dashboard-hackathon" element={<StudentDashboard />} />
+
       {/* Auditor Routes */}
       <Route
         path="/auditor/dashboard"
