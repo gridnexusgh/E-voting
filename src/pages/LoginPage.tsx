@@ -81,7 +81,7 @@ export function LoginPage() {
               <Vote className="h-6 w-6 text-white" />
             </div>
             <div>
-              <p className="text-lg font-semibold text-slate-900">UEVS Sign In</p>
+              <p className="text-lg font-semibold text-slate-900">HTU E-VOTING SYSTEM Sign In</p>
               <p className="text-sm text-slate-500">Access your verified account</p>
             </div>
           </div>

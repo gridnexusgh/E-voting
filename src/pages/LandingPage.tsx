@@ -74,7 +74,7 @@ export function LandingPage() {
                 </span>
               </h1>
               <p className="mt-6 text-lg leading-8 text-slate-300 sm:text-xl">
-                UEVS brings secure student voting, biometric verification, and clear results into one polished experience built for trust and participation.
+                HTU E-VOTING SYSTEM brings secure student voting, biometric verification, and clear results into one polished experience built for trust and participation.
               </p>
 
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
@@ -148,7 +148,7 @@ export function LandingPage() {
                 <p className="inline-flex rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">Our democratic manifesto</p>
                 <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">A calm, credible foundation for campus democracy.</h2>
                 <p className="mt-4 text-lg leading-8 text-slate-600">
-                  UEVS is designed to make every election feel clear, inclusive, and trustworthy, whether the vote is cast from a phone or a desktop.
+                 HTU E-VOTING SYSTEM is designed to make every election feel clear, inclusive, and trustworthy, whether the vote is cast from a phone or a desktop.
                 </p>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -168,7 +168,7 @@ export function LandingPage() {
           </div>
 
           <div className="mx-auto mt-16 max-w-2xl text-center">
-            <p className="inline-flex rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">Why students trust UEVS</p>
+            <p className="inline-flex rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">Why students trust HTU E-VOTING SYSTEM</p>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">A polished platform for fair and reliable elections.</h2>
             <p className="mt-4 text-lg text-slate-600">Every experience is designed to feel secure, simple, and confidently modern.</p>
           </div>
@@ -214,9 +214,9 @@ export function LandingPage() {
       <section id="about" className="bg-slate-50 py-20 lg:py-24">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
           <div>
-            <p className="inline-flex rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">About UEVS</p>
+            <p className="inline-flex rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">About HTU E-VOTING SYSTEM</p>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">Built to modernize student governance.</h2>
-            <p className="mt-5 text-lg leading-8 text-slate-600">UEVS provides a secure digital home for student elections, helping universities run fair, transparent, and inclusive voting experiences.</p>
+            <p className="mt-5 text-lg leading-8 text-slate-600">HTU E-VOTING SYSTEM provides a secure digital home for student elections, helping universities run fair, transparent, and inclusive voting experiences.</p>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
               {[
                 { icon: Building2, label: 'Faculties', value: '10+' },

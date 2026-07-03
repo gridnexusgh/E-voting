@@ -107,12 +107,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (!userData.is_email_verified) {
-        await supabase.auth.signOut();
-        setState({ user: null, isLoading: false, isAuthenticated: false });
-        return;
-      }
-
       setState({
         user: userData as User,
         isLoading: false,

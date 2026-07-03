@@ -22,17 +22,6 @@ interface SlotFormState {
   enabled: boolean;
 }
 
-const positionOptions = [
-  "President",
-  "Vice President",
-  "Secretary",
-  "Treasurer",
-  "Public Relations Officer",
-  "Welfare Officer",
-  "Events Coordinator",
-  "Academic Officer",
-];
-
 type SlotStatus = "draft" | "published" | "closed";
 
 interface SlotRow extends ElectionPosition {
@@ -406,20 +395,15 @@ export function SlotManagementPage() {
               <label className="block text-sm font-medium text-slate-700">
                 Position
               </label>
-              <select
+              <input
+                type="text"
                 value={form.slotName}
                 onChange={(event) =>
                   handleFormChange("slotName", event.target.value)
                 }
+                placeholder="Enter position name"
                 className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select a position</option>
-                {positionOptions.map((position) => (
-                  <option key={position} value={position}>
-                    {position}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div className="space-y-4">

@@ -1,4 +1,4 @@
-# UEVS Setup Guide: Election Officer & Email Configuration
+# HTU E-VOTING SYSTEM Setup Guide: Election Officer & Email Configuration
 
 ## Part 1: Run Missing Database Migrations
 

@@ -189,7 +189,7 @@ Deno.serve(async (req: Request) => {
 
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px;">
-        <h2 style="color: #2563eb; margin-bottom: 12px;">UEVS email verification</h2>
+        <h2 style="color: #2563eb; margin-bottom: 12px;">HTU E-VOTING SYSTEM email verification</h2>
         <p style="font-size: 16px; color: #374151;">Hello${body.studentName ? ` ${body.studentName}` : ""},</p>
         <p style="font-size: 16px; color: #374151;">Use the following verification code to continue your registration:</p>
         <div style="font-size: 32px; font-weight: 700; letter-spacing: 0.2em; margin: 20px 0; color: #111827;">${code}</div>
@@ -208,8 +208,8 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify({
           personalizations: [{ to: [{ email }] }],
-          from: { email: sendGridFromEmail, name: "UEVS" },
-          subject: "Your UEVS verification code",
+          from: { email: sendGridFromEmail, name: "HTU E-VOTING SYSTEM" },
+          subject: "Your HTU E-VOTING SYSTEM verification code",
           content: [{ type: "text/html", value: html }],
         }),
       });
@@ -220,9 +220,9 @@ Deno.serve(async (req: Request) => {
           Authorization: `Basic ${btoa(`api:${mailgunApiKey}`)}`,
         },
         body: new URLSearchParams({
-          from: `UEVS <${mailgunFromEmail}>`,
+          from: `HTU E-VOTING SYSTEM <${mailgunFromEmail}>`,
           to: email,
-          subject: "Your UEVS verification code",
+          subject: "Your HTU E-VOTING SYSTEM verification code",
           html,
         }),
       });
@@ -236,7 +236,7 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({
           from: resendFromEmail,
           to: [email],
-          subject: "Your UEVS verification code",
+          subject: "Your HTU E-VOTING SYSTEM verification code",
           html,
         }),
       });

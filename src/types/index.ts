@@ -43,6 +43,7 @@ export interface User {
   role: UserRole;
   full_name: string;
   username?: string;
+  profile_image_url?: string;
   student_record_id?: string;
   faculty_id?: string;
   department_id?: string;

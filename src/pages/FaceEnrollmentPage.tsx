@@ -13,7 +13,7 @@ import {
   User,
   X,
 } from 'lucide-react';
-import { supabase } from '../services/supabase';
+import { supabase, invokeEdgeFunction } from '../services/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 export function FaceEnrollmentPage() {
@@ -24,10 +24,11 @@ export function FaceEnrollmentPage() {
   const [error, setError] = useState('');
   const [cameraPermission, setCameraPermission] = useState<'pending' | 'granted' | 'denied'>('pending');
   const [isLoading, setIsLoading] = useState(true);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const navigate = useNavigate();
-  const { user, updateUserFaceEnrollment } = useAuth();
+  const { user, updateUserFaceEnrollment, refreshUser } = useAuth();
 
   useEffect(() => {
     checkUserStatus();
@@ -45,11 +46,19 @@ export function FaceEnrollmentPage() {
       return;
     }
 
-    const { data: userData } = await supabase
+    setAuthUserId(authUser.id);
+
+    const { data: userData, error } = await supabase
       .from('users')
       .select('is_face_enrolled')
       .eq('id', authUser.id)
       .single();
+
+    if (error) {
+      setError('Unable to verify enrollment status. Please refresh and try again.');
+      setIsLoading(false);
+      return;
+    }
 
     if (userData?.is_face_enrolled) {
       setIsEnrolled(true);
@@ -114,27 +123,25 @@ export function FaceEnrollmentPage() {
 
     try {
       const base64Data = capturedImage.split(',')[1];
+      const userId = authUserId || user?.id;
 
-      const { data: functionData, error: functionError } = await supabase.functions.invoke(
-        'face-enrollment',
-        {
-          body: {
-            userId: user?.id,
-            imageBase64: base64Data,
-          },
-        }
-      );
-
-      if (functionError) {
-        setError(functionError.message || 'Failed to process facial enrollment. Please try again.');
+      if (!userId) {
+        setError('Unable to identify your account. Please sign out and sign in again.');
         return;
       }
+
+      const functionData = await invokeEdgeFunction('face-enrollment', {
+        userId,
+        imageBase64: base64Data,
+        profileImageUrl: capturedImage,
+        demo: true,
+      });
 
       if (functionData?.success) {
         const { error: updateError } = await supabase
           .from('users')
           .update({ is_face_enrolled: true })
-          .eq('id', user?.id);
+          .eq('id', userId);
 
         if (updateError) {
           setError('Failed to update enrollment status. Please contact support.');
@@ -142,12 +149,14 @@ export function FaceEnrollmentPage() {
         }
 
         updateUserFaceEnrollment();
+        await refreshUser();
         setIsEnrolled(true);
       } else {
         setError(functionData?.error || 'Face detection failed. Please ensure your face is clearly visible.');
       }
-    } catch {
-      setError('An unexpected error occurred. Please try again.');
+} catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.';
+      setError(message);
     } finally {
       setIsUploading(false);
     }

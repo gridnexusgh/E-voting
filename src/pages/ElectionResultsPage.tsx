@@ -27,93 +27,6 @@ interface ElectionResultItem {
   positions: PositionResult[];
 }
 
-const mockResults: ElectionResultItem[] = [
-  {
-    election: {
-      id: "mock-election-final-1",
-      officer_id: "mock-officer",
-      title: "SRC General Election 2026",
-      description: "Mock election completed outcomes.",
-      academic_year: "2025 / 2026",
-      category: "university",
-      scope_id: undefined,
-      status: "results_published",
-      nomination_start: undefined,
-      nomination_end: undefined,
-      voting_start: "2026-06-01T10:00",
-      voting_end: "2026-06-05T18:00",
-      slot_application_fee: 0,
-      enable_payment: false,
-      total_voters: 5200,
-      total_votes_cast: 2980,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    positions: [
-      {
-        positionId: "position-1",
-        position: "President",
-        candidates: [
-          {
-            id: "mock-candidate-1",
-            name: "Amina Yusuf",
-            profile_image_url: "https://i.pravatar.cc/150?img=48",
-            votes: 1280,
-            percentage: 57,
-            isWinner: true,
-          },
-          {
-            id: "mock-candidate-2",
-            name: "David Nwosu",
-            profile_image_url: "https://i.pravatar.cc/150?img=12",
-            votes: 850,
-            percentage: 38,
-            isWinner: false,
-          },
-          {
-            id: "mock-candidate-3",
-            name: "Sara Bello",
-            profile_image_url: "https://i.pravatar.cc/150?img=33",
-            votes: 180,
-            percentage: 8,
-            isWinner: false,
-          },
-        ],
-      },
-      {
-        positionId: "position-2",
-        position: "Vice President",
-        candidates: [
-          {
-            id: "mock-candidate-4",
-            name: "Chris Ade",
-            profile_image_url: "https://i.pravatar.cc/150?img=55",
-            votes: 1020,
-            percentage: 51,
-            isWinner: true,
-          },
-          {
-            id: "mock-candidate-5",
-            name: "Esther Kalu",
-            profile_image_url: "https://i.pravatar.cc/150?img=7",
-            votes: 760,
-            percentage: 38,
-            isWinner: false,
-          },
-          {
-            id: "mock-candidate-6",
-            name: "James Obi",
-            profile_image_url: "https://i.pravatar.cc/150?img=18",
-            votes: 214,
-            percentage: 11,
-            isWinner: false,
-          },
-        ],
-      },
-    ],
-  },
-];
-
 export function ElectionResultsPage() {
   const { user } = useAuth();
   const [results, setResults] = useState<ElectionResultItem[]>([]);
@@ -133,8 +46,8 @@ export function ElectionResultsPage() {
       try {
         const elections = await getCompletedElections(userId);
         if (elections.length === 0) {
-          setResults(mockResults);
-          setSelectedElectionId(mockResults[0].election.id);
+          setResults([]);
+          setSelectedElectionId("");
           return;
         }
 
@@ -159,20 +72,15 @@ export function ElectionResultsPage() {
           }),
         );
 
-        if (electionResults.length === 0) {
-          setResults(mockResults);
-          setSelectedElectionId(mockResults[0].election.id);
-        } else {
-          setResults(electionResults);
-          setSelectedElectionId(electionResults[0].election.id);
-        }
+        setResults(electionResults);
+        setSelectedElectionId(electionResults[0]?.election.id ?? "");
       } catch (err) {
         console.error(err);
         setError(
           "Unable to load final election results. Please refresh the page.",
         );
-        setResults(mockResults);
-        setSelectedElectionId(mockResults[0].election.id);
+        setResults([]);
+        setSelectedElectionId("");
       } finally {
         setIsLoading(false);
       }
@@ -251,6 +159,13 @@ export function ElectionResultsPage() {
         {isLoading ? (
           <div className="flex h-48 items-center justify-center text-slate-500 mt-6">
             Loading final results...
+          </div>
+        ) : results.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500 mt-6">
+            <p>No completed elections found.</p>
+            <p className="mt-2 text-sm">
+              Close an election to generate and publish final results.
+            </p>
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] mt-6">

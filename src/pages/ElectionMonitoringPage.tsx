@@ -34,185 +34,6 @@ const getInitials = (name: string) => {
     .join("");
 };
 
-const mockMonitorData: ElectionMonitorEntry[] = [
-  {
-    election: {
-      id: "mock-election-1",
-      officer_id: "mock-officer",
-      title: "SRC General Election 2026",
-      description: "Mock election for UI preview.",
-      academic_year: "2025 / 2026",
-      category: "university",
-      scope_id: undefined,
-      status: "active",
-      nomination_start: undefined,
-      nomination_end: undefined,
-      voting_start: "2026-06-01T10:00",
-      voting_end: "2026-06-05T18:00",
-      slot_application_fee: 0,
-      enable_payment: false,
-      total_voters: 5000,
-      total_votes_cast: 2500,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    candidates: [
-      {
-        id: "mock-candidate-1",
-        election_id: "mock-election-1",
-        user_id: "user-1",
-        position_id: "position-1",
-        application_status: "approved",
-        payment_status: "successful",
-        is_visible_for_voting: true,
-        submission_date: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        vote_count: 1280,
-        profile_image_url:
-          "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-        user: {
-          id: "user-1",
-          full_name: "Amina Yusuf",
-          email: "amina@yourschool.edu",
-        },
-        position: { id: "position-1", position_name: "President" },
-      } as ElectionCandidateWithVotes,
-      {
-        id: "mock-candidate-2",
-        election_id: "mock-election-1",
-        user_id: "user-2",
-        position_id: "position-1",
-        application_status: "approved",
-        payment_status: "successful",
-        is_visible_for_voting: true,
-        submission_date: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        vote_count: 850,
-        profile_image_url:
-          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
-        user: {
-          id: "user-2",
-          full_name: "David Nwosu",
-          email: "david@yourschool.edu",
-        },
-        position: { id: "position-1", position_name: "President" },
-      } as ElectionCandidateWithVotes,
-      {
-        id: "mock-candidate-3",
-        election_id: "mock-election-1",
-        user_id: "user-3",
-        position_id: "position-1",
-        application_status: "approved",
-        payment_status: "successful",
-        is_visible_for_voting: true,
-        submission_date: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        vote_count: 430,
-        profile_image_url:
-          "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80",
-        user: {
-          id: "user-3",
-          full_name: "Sara Bello",
-          email: "sara@yourschool.edu",
-        },
-        position: { id: "position-1", position_name: "President" },
-      } as ElectionCandidateWithVotes,
-    ],
-    maxVotes: 1280,
-  },
-  {
-    election: {
-      id: "mock-election-2",
-      officer_id: "mock-officer",
-      title: "Faculty Union Election",
-      description: "Mock faculty-level election preview.",
-      academic_year: "2025 / 2026",
-      category: "faculty",
-      scope_id: "fac-1",
-      status: "active",
-      nomination_start: undefined,
-      nomination_end: undefined,
-      voting_start: "2026-06-10T09:00",
-      voting_end: "2026-06-12T17:00",
-      slot_application_fee: 0,
-      enable_payment: false,
-      total_voters: 1300,
-      total_votes_cast: 760,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    candidates: [
-      {
-        id: "mock-candidate-4",
-        election_id: "mock-election-2",
-        user_id: "user-4",
-        position_id: "position-2",
-        application_status: "approved",
-        payment_status: "successful",
-        is_visible_for_voting: true,
-        submission_date: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        vote_count: 380,
-        profile_image_url:
-          "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80",
-        user: {
-          id: "user-4",
-          full_name: "Chris Ade",
-          email: "chris@yourschool.edu",
-        },
-        position: { id: "position-2", position_name: "Vice President" },
-      } as ElectionCandidateWithVotes,
-      {
-        id: "mock-candidate-5",
-        election_id: "mock-election-2",
-        user_id: "user-5",
-        position_id: "position-2",
-        application_status: "approved",
-        payment_status: "successful",
-        is_visible_for_voting: true,
-        submission_date: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        vote_count: 245,
-        profile_image_url:
-          "https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?auto=format&fit=crop&w=200&q=80",
-        user: {
-          id: "user-5",
-          full_name: "Esther Kalu",
-          email: "esther@yourschool.edu",
-        },
-        position: { id: "position-2", position_name: "Vice President" },
-      } as ElectionCandidateWithVotes,
-      {
-        id: "mock-candidate-6",
-        election_id: "mock-election-2",
-        user_id: "user-6",
-        position_id: "position-2",
-        application_status: "approved",
-        payment_status: "successful",
-        is_visible_for_voting: true,
-        submission_date: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        vote_count: 135,
-        profile_image_url:
-          "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80",
-        user: {
-          id: "user-6",
-          full_name: "James Obi",
-          email: "james@yourschool.edu",
-        },
-        position: { id: "position-2", position_name: "Vice President" },
-      } as ElectionCandidateWithVotes,
-    ],
-    maxVotes: 380,
-  },
-];
-
 export function ElectionMonitoringPage() {
   const { user } = useAuth();
   const [monitorData, setMonitorData] = useState<ElectionMonitorEntry[]>([]);
@@ -230,7 +51,7 @@ export function ElectionMonitoringPage() {
       try {
         const elections = await getActiveElections(userId);
         if (elections.length === 0) {
-          setMonitorData(mockMonitorData);
+          setMonitorData([]);
           return;
         }
 
@@ -254,17 +75,13 @@ export function ElectionMonitoringPage() {
           }),
         );
 
-        if (results.length === 0) {
-          setMonitorData(mockMonitorData);
-        } else {
-          setMonitorData(results);
-        }
+        setMonitorData(results);
       } catch (err) {
         console.error(err);
         setError(
           "Unable to load election monitoring data. Please refresh the page.",
         );
-        setMonitorData(mockMonitorData);
+        setMonitorData([]);
       } finally {
         setIsLoading(false);
       }

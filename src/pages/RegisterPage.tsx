@@ -14,7 +14,7 @@ import {
   Lock,
   ChevronDown,
 } from 'lucide-react';
-import { supabase } from '../services/supabase';
+import { supabase, invokeEdgeFunction } from '../services/supabase';
 import type { Faculty, Department } from '../types';
 
 interface FormData {
@@ -165,7 +165,7 @@ export function RegisterPage() {
     return null;
   }
 
-  async function sendConfirmationEmail() {
+  async function registerStudent() {
     setErrors({});
 
     if (!formData.email.trim()) {
@@ -190,88 +190,66 @@ export function RegisterPage() {
       return;
     }
 
+    if (!studentName) {
+      setErrors({ form: 'Student verification is required before creating an account.' });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const { data: existingProfile, error: existingProfileError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', normalizedEmail)
+        .maybeSingle();
+
+      if (existingProfileError) {
+        setErrors({ form: 'Unable to verify whether this email is already registered. Please try again.' });
+        return;
+      }
+
+      if (existingProfile) {
+        setErrors({ email: 'This email is already registered. Please sign in instead.' });
+        return;
+      }
+
+      const functionData = await invokeEdgeFunction('create-admin-user', {
         email: normalizedEmail,
         password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/verify-email`,
-        },
+        full_name: studentName,
+        role: 'student',
+        username: null,
+        scope: 'department',
+        faculty_id: formData.facultyId,
+        department_id: formData.departmentId,
       });
 
-      if (signUpError) {
-        setErrors({ form: signUpError.message || 'Unable to send confirmation email. Please check your Supabase Auth email settings.' });
+      if (!functionData?.success) {
+        if (functionData?.recovered) {
+          setErrors({ form: 'An account already exists for this email. Please sign in or reset your password.' });
+          return;
+        }
+
+        setErrors({ form: functionData?.error || 'Unable to create account. Please try again.' });
         return;
       }
 
-      if (!data.user) {
-        setErrors({ form: 'Confirmation email was not created. Please check your Supabase Auth email settings.' });
-        return;
-      }
-
-      setErrors({});
-      setStep(3); // show "Check your email" step
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function verifyEmailCode() {
-    // With Supabase built-in confirmation we no longer verify codes here.
-    // Instead, attempt to sign in to check whether the user has confirmed their email.
-    setErrors({});
-    setIsLoading(true);
-
-    try {
-      const normalizedEmail = normalizeEmail(formData.email);
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
         password: formData.password,
       });
 
       if (signInError) {
-        setErrors({ form: 'Email not yet confirmed. Please check your inbox for the confirmation link.' });
+        setErrors({ form: signInError.message || 'Account created but sign-in failed. Please log in manually.' });
         return;
       }
 
-      // Insert profile row now that the user is authenticated
-      const { data: studentRecord } = await supabase
-        .from('student_records')
-        .select('id')
-        .eq('student_id', formData.studentId)
-        .maybeSingle();
-
-      const profile = {
-        id: signInData.user?.id,
-        email: normalizedEmail,
-        password_hash: '',
-        role: 'student',
-        full_name: studentName,
-        student_record_id: studentRecord?.id || null,
-        faculty_id: formData.facultyId,
-        department_id: formData.departmentId,
-        is_email_verified: true,
-        is_face_enrolled: false,
-      };
-
-      const { error: insertError } = await supabase.from('users').insert(profile);
-      if (insertError) {
-        // If profile already exists, try updating is_email_verified
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ is_email_verified: true })
-          .eq('id', signInData.user?.id);
-
-        if (updateError) {
-          setErrors({ form: 'Signed in but failed to finalize account. Please try again.' });
-          return;
-        }
-      }
-
-      // Redirect to face enrollment
+      setErrors({});
       navigate('/face-enrollment');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to complete registration. Please try again.';
+      setErrors({ form: message });
     } finally {
       setIsLoading(false);
     }
@@ -289,41 +267,58 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.2),_transparent_30%),linear-gradient(135deg,_#f8fbff_0%,_#eef5ff_45%,_#dbeafe_100%)] px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 lg:flex-row lg:items-start">
-        <div className="max-w-xl rounded-[2rem] bg-slate-950 p-8 text-white shadow-2xl shadow-slate-900/20 sm:p-10">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.25),_transparent_28%),linear-gradient(135deg,_#020617_0%,_#0f172a_45%,_#1d4ed8_100%)] px-4 py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 lg:flex-row lg:items-center">
+        <div className="max-w-xl text-white lg:pr-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-blue-100 backdrop-blur">
             <Vote className="h-4 w-4" />
-            Student identity verification
+            Secure access for student elections
           </div>
-          <h1 className="mt-6 text-3xl font-semibold sm:text-4xl">Create your UEVS account</h1>
-          <p className="mt-4 text-lg leading-8 text-slate-300">
-            Register with your verified student details, confirm your email, and prepare for secure voting.
+          <h1 className="mt-6 text-4xl font-semibold leading-tight sm:text-5xl">
+            Join HTU E-VOTING SYSTEM for secure campus voting.
+          </h1>
+          <p className="mt-5 text-lg leading-8 text-slate-300">
+            Register with your verified student record and continue to face enrollment for secure election access.
           </p>
-          <div className="mt-8 space-y-3 rounded-[1.5rem] border border-white/10 bg-white/10 p-5 backdrop-blur">
-            {[
-              'Verified academic record matching',
-              'Protected email confirmation',
-              'Optional face enrollment for voting access',
-            ].map((item) => (
-              <div key={item} className="flex items-center gap-3 rounded-2xl bg-white/10 px-3 py-3 text-sm text-slate-200">
-                <CheckCircle2 className="h-4 w-4 text-blue-300" />
-                <span>{item}</span>
+          <div className="mt-8 rounded-[1.75rem] border border-white/10 bg-white/10 p-6 backdrop-blur">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600">
+                <Vote className="h-5 w-5 text-white" />
               </div>
-            ))}
+              <div>
+                <p className="text-sm font-semibold text-white">Everything you need, in one place</p>
+                <p className="text-sm text-slate-300">Verify your identity, enroll your face, and protect your vote.</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="flex-1">
-          <div className="mb-6 flex max-w-md justify-center rounded-full border border-slate-200/80 bg-white/80 p-2 shadow-sm backdrop-blur sm:mx-auto lg:mx-0">
+        <div className="w-full max-w-lg rounded-[2rem] border border-slate-200/80 bg-white/95 p-6 shadow-2xl shadow-slate-950/20 backdrop-blur sm:p-8">
+          <div className="mb-6 flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 shadow-lg">
+              <Vote className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-slate-900">HTU E-VOTING SYSTEM Sign Up</p>
+              <p className="text-sm text-slate-500">Create your secure voting account</p>
+            </div>
+          </div>
+
+          {errors.form && (
+            <div className="mb-5 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4">
+              <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" />
+              <p className="text-sm text-red-700">{errors.form}</p>
+            </div>
+          )}
+
+          <div className="mb-6 flex max-w-md justify-center rounded-full border border-slate-200/80 bg-slate-50 p-2 shadow-sm backdrop-blur sm:mx-auto lg:mx-0">
             <div className="flex w-full items-center justify-between gap-2">
               {[
                 { num: 1, label: 'Academic Info' },
                 { num: 2, label: 'Account Setup' },
-                { num: 3, label: 'Verify Email' },
               ].map((s) => (
                 <div key={s.num} className="flex flex-1 flex-col items-center">
-                  <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold ${step >= s.num ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                  <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold ${step >= s.num ? 'bg-blue-600 text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
                     {step > s.num ? <CheckCircle2 className="h-5 w-5" /> : s.num}
                   </div>
                   <span className={`mt-2 hidden text-xs font-medium sm:block ${step >= s.num ? 'text-slate-900' : 'text-slate-500'}`}>{s.label}</span>
@@ -331,14 +326,6 @@ export function RegisterPage() {
               ))}
             </div>
           </div>
-
-          <div className="rounded-[2rem] border border-slate-200/80 bg-white p-6 shadow-2xl shadow-slate-900/10 sm:p-8">
-            {errors.form && (
-              <div className="mb-5 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4">
-                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" />
-                <p className="text-sm text-red-700">{errors.form}</p>
-              </div>
-            )}
 
           {step === 1 && (
             <>
@@ -569,6 +556,7 @@ export function RegisterPage() {
 
                 <div className="flex gap-3 mt-6">
                   <button
+                    type="button"
                     onClick={() => setStep(1)}
                     disabled={isLoading}
                     className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors"
@@ -577,18 +565,19 @@ export function RegisterPage() {
                     <span>Back</span>
                   </button>
                   <button
-                    onClick={sendConfirmationEmail}
+                    type="button"
+                    onClick={registerStudent}
                     disabled={isLoading}
                     className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-semibold transition-colors shadow-md"
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Sending...</span>
+                        <span>Creating account...</span>
                       </>
                     ) : (
                       <>
-                        <span>Send confirmation email</span>
+                        <span>Create account</span>
                         <ArrowRight className="w-5 h-5" />
                       </>
                     )}
@@ -598,59 +587,16 @@ export function RegisterPage() {
             </>
           )}
 
-          {step === 3 && (
-            <div className="text-center py-8">
-              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Mail className="w-10 h-10 text-blue-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Check Your Email</h2>
-              <p className="text-gray-600 mb-6 max-w-sm mx-auto">
-                We sent a confirmation link to <span className="font-medium text-gray-900">{formData.email}</span>. Click the link to confirm your email, then return here and click <span className="font-medium">I have confirmed</span>.
-              </p>
-
-              <div className="space-y-4 text-left">
-                <button
-                  onClick={verifyEmailCode}
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-semibold transition-colors shadow-md"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Checking...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>I have confirmed</span>
-                      <ArrowRight className="w-5 h-5" />
-                    </>
-                  )}
-                </button>
-
-</div>
-
-              <div className="bg-gray-50 rounded-xl p-4 mt-6">
-                <p className="text-sm text-gray-500">
-                  After confirming, you'll need to complete facial enrollment to activate your voting access.
-                </p>
-              </div>
-            </div>
-          )}
-
-        </div>
-
-            {step < 3 && (
-              <p className="mt-6 text-center text-sm text-slate-600">
-                Already have an account?{' '}
-                <Link to="/login" className="font-semibold text-blue-600 transition-colors hover:text-blue-700">
-                  Sign In
-                </Link>
-              </p>
-            )}
+          <div className="mt-6 border-t border-slate-200 pt-6">
+            <p className="text-center text-sm text-slate-600">
+              Already have an account?{' '}
+              <Link to="/login" className="font-semibold text-blue-600 transition-colors hover:text-blue-700">
+                Sign In
+              </Link>
+            </p>
           </div>
         </div>
       </div>
-    
-    
+    </div>
   );
 }

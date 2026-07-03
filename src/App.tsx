@@ -63,6 +63,10 @@ function PublicRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, user } = useAuth();
 
   if (isAuthenticated && user) {
+    if (user.role === 'student' && !user.is_face_enrolled) {
+      return <Navigate to="/face-enrollment" replace />;
+    }
+
     const dashboardRoutes: Record<string, string> = {
       admin: "/admin",
       election_officer: "/election-officer/dashboard",
@@ -204,9 +208,24 @@ function AppRoutes() {
         }
       />
 
-      {/* Student Routes - TEMP: auth bypassed for UI testing */}
-      <Route path="/student" element={<StudentDashboard />} />
-      <Route path="/student/dashboard" element={<StudentDashboard />} />
+      {/* Student Routes */}
+      <Route
+        path="/student"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/dashboard"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentDashboard />
+          </ProtectedRoute>
+        }
+      />
+
 
       {/* Auditor Routes */}
       <Route

@@ -622,6 +622,27 @@ export async function getCompletedElections(officerId: string) {
   return data as Election[];
 }
 
+export async function getCompletedStudentElections(
+  facultyId?: string,
+  departmentId?: string,
+) {
+  const { data, error } = await supabase
+    .from('elections')
+    .select('*')
+    .in('status', ['closed', 'results_published'])
+    .order('voting_end', { ascending: false });
+
+  if (error) throw error;
+  const elections = (data ?? []) as Election[];
+
+  return elections.filter((election) => {
+    if (election.category === 'university') return true;
+    if (election.category === 'faculty') return facultyId && election.scope_id === facultyId;
+    if (election.category === 'department') return departmentId && election.scope_id === departmentId;
+    return false;
+  });
+}
+
 // CSV upload helper
 export async function parseStudentCSV(csvContent: string): Promise<Array<{ student_id: string; full_name: string; email: string; faculty_id?: string; department_id?: string }>> {
   const lines = csvContent.trim().split('\n');

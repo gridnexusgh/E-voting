@@ -48,7 +48,7 @@ export function Header() {
           </div>
           <div className="hidden sm:block">
             <span className={`text-lg font-bold sm:text-xl ${isLandingPage ? "text-white" : "text-slate-900"}`}>
-              UEVS
+              HTU E-VOTING SYSTEM
             </span>
             <p className={`-mt-1 text-xs ${isLandingPage ? "text-slate-300" : "text-slate-500"}`}>
               Electronic Voting System

@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { Menu, X, Users, Building2, Grid, FilePlus, FileText, Settings, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useState } from 'react';
+import { DashboardBranding } from '../../components/layout/DashboardBranding';
 
 export function AdminLayout() {
   const { user, logout } = useAuth();
@@ -112,12 +113,11 @@ export function AdminLayout() {
       </aside>
 
       <main className="lg:ml-72 pt-16 lg:pt-0">
-        <div className="bg-white border-b border-slate-200/80 shadow-sm">
-          <div className="px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-blue-600">Administrator Dashboard</p>
-              <p className="text-2xl sm:text-3xl font-bold text-slate-900">{profileName}</p>
-            </div>
+        <DashboardBranding
+          title="HTU ELECTION"
+          subtitle="ADMIN CONSOLE"
+          onToggleSidebar={() => setSidebarOpen((open) => !open)}
+          rightContent={
             <button
               onClick={logout}
               className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-500/20 hover:bg-blue-700 transition"
@@ -125,8 +125,8 @@ export function AdminLayout() {
               <LogOut className="h-4 w-4" />
               Sign Out
             </button>
-          </div>
-        </div>
+          }
+        />
 
         <div className="px-4 sm:px-6 lg:px-8 py-8">
           <Outlet />

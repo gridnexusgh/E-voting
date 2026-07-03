@@ -41,7 +41,7 @@ export function ForgotPasswordPage() {
               <Vote className="w-7 h-7 text-white" />
             </div>
             <div className="text-left">
-              <span className="text-2xl font-bold text-gray-900">UEVS</span>
+              <span className="text-2xl font-bold text-gray-900">HTU E-VOTING SYSTEM</span>
               <p className="text-xs text-gray-500">Electronic Voting System</p>
             </div>
           </Link>

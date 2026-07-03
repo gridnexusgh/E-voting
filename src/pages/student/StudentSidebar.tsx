@@ -12,6 +12,7 @@ import {
   Circle,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import htuLogo from "../../assets/HTU.png";
 
 interface StudentSidebarProps {
@@ -26,6 +27,21 @@ export function StudentSidebar({
   onSelect,
 }: StudentSidebarProps) {
   const { logout } = useAuth();
+  const navigate = useNavigate();
+  const handleSignOut = async () => {
+    try {
+      await logout();
+    } finally {
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch {
+        /* noop */
+      }
+      window.location.href = "/login";
+      navigate("/login", { replace: true });
+    }
+  };
   const [resultsOpen, setResultsOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
 
@@ -36,8 +52,8 @@ export function StudentSidebar({
   const paddedRow = collapsed
     ? "px-3 py-3 justify-center"
     : "px-4 py-3 justify-start";
-  const activeClass = "bg-white text-blue-700 shadow-md";
-  const idleClass = "text-blue-100 hover:bg-blue-800/60 hover:text-white";
+  const activeClass = "bg-white/10 text-white rounded-xl shadow-md";
+  const idleClass = "text-blue-100 hover:bg-white/5 hover:text-white";
 
   const menuLabel = (text: string) => (
     <span
@@ -53,7 +69,7 @@ export function StudentSidebar({
 
   return (
     <aside
-      className={`flex flex-col overflow-hidden bg-[#1e40af] text-white z-40 transition-all duration-300 ease-in-out h-screen fixed md:sticky top-0 ${
+      className={`flex flex-col overflow-hidden bg-gradient-to-b from-[#0C1E4E] to-[#0E1E38] text-white z-40 transition-all duration-300 ease-in-out h-screen fixed md:sticky top-0 ${
         collapsed
           ? "-translate-x-full md:translate-x-0 md:w-16"
           : "translate-x-0 w-72 md:w-72 shadow-2xl md:shadow-none"
@@ -221,7 +237,7 @@ export function StudentSidebar({
       {/* Sign out */}
       <div className="p-3 border-t border-blue-800/40">
         <button
-          onClick={logout}
+          onClick={handleSignOut}
           className={`${itemBase} ${paddedRow} ${idleClass}`}
           title="Sign Out"
         >

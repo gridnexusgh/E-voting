@@ -1,4 +1,4 @@
--- UEVS Database Validation Queries
+-- HTU E-VOTING SYSTEM Database Validation Queries
 -- Run these in Supabase SQL Editor to verify all tables and policies are set up
 
 -- 1. Check all election-related tables exist

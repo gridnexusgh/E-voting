@@ -25,7 +25,7 @@ INSERT INTO users (
   'admin@htu.edu.gh',
   crypt('Admin123!', gen_salt('bf', 12)),
   'admin',
-  'UEVS Administrator',
+  'HTU E-VOTING SYSTEM Administrator',
   'admin',
   true,
   true,

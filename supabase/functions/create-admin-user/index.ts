@@ -61,12 +61,15 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE") ?? "";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+      ?? Deno.env.get("SUPABASE_SERVICE_ROLE")
+      ?? Deno.env.get("SUPABASE_SERVICE_KEY")
+      ?? "";
 
-    if (!supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseServiceKey) {
       return new Response(
-        JSON.stringify({ error: "Supabase service role key is not configured" }),
+        JSON.stringify({ error: "Supabase URL or service role key is not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -74,6 +77,70 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
+
+    async function findExistingAuthUserByEmail(emailToFind: string) {
+      const normalizedEmail = emailToFind.trim().toLowerCase();
+      let page = 1;
+      const perPage = 100;
+
+      while (true) {
+        const { data: listData, error: listError } = await supabase.auth.admin.listUsers({
+          page,
+          perPage,
+        });
+
+        if (listError) {
+          throw listError;
+        }
+
+        const users = listData?.users || [];
+        const found = users.find(
+          (user) => user.email?.toLowerCase() === normalizedEmail,
+        );
+        if (found) return found;
+
+        if (!listData?.nextPage || page >= (listData?.lastPage ?? page)) break;
+        page = listData.nextPage;
+      }
+
+      return null;
+    }
+
+    async function createProfileForAuthUser(authUser: any) {
+      const { data: existingProfile } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', authUser.id)
+        .maybeSingle();
+
+      if (existingProfile) {
+        return { alreadyExists: true };
+      }
+
+      const profile = {
+        id: authUser.id,
+        email,
+        password_hash: '',
+        role,
+        full_name,
+        username: body.username || null,
+        profile_image_url: null,
+        scope,
+        faculty_id: scope === 'university' ? null : body.faculty_id || null,
+        department_id: scope === 'department' ? body.department_id || null : null,
+        is_email_verified: true,
+        is_face_enrolled: false,
+        is_active: true,
+      };
+
+      const { error: insertError } = await supabase.from('users').insert(profile);
+      if (insertError) {
+        console.error('create-admin-user profile insert error', insertError);
+        throw insertError;
+      }
+
+      return { alreadyExists: false };
+    }
 
     const { data, error: createError } = await supabase.auth.admin.createUser({
       email,
@@ -90,11 +157,30 @@ Deno.serve(async (req: Request) => {
     });
 
     if (createError || !data?.user) {
-      const details = createError?.message || "Failed to create auth user";
-      console.error("create-admin-user auth error", details, createError);
+      const details = createError?.message || 'Failed to create auth user';
+      console.error('create-admin-user auth error', details, createError);
+
+      if (details.toLowerCase().includes('already been registered') || details.toLowerCase().includes('already registered')) {
+        const existingAuthUser = await findExistingAuthUserByEmail(email);
+        if (existingAuthUser) {
+          const profileResult = await createProfileForAuthUser(existingAuthUser);
+          if (!profileResult.alreadyExists) {
+            return new Response(
+              JSON.stringify({ success: true, userId: existingAuthUser.id, recovered: true }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+            );
+          }
+
+          return new Response(
+            JSON.stringify({ error: 'This email is already registered. Please sign in instead.' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          );
+        }
+      }
+
       return new Response(
         JSON.stringify({ error: details, details }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -106,6 +192,7 @@ Deno.serve(async (req: Request) => {
       role,
       full_name,
       username: body.username || null,
+      profile_image_url: null,
       scope,
       faculty_id: scope === 'university' ? null : body.faculty_id || null,
       department_id: scope === 'department' ? body.department_id || null : null,

@@ -76,7 +76,7 @@ export function StudentDashboard() {
                 <Vote className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="font-bold text-gray-900">UEVS Student Portal</p>
+                <p className="font-bold text-gray-900">HTU E-VOTING SYSTEM Student Portal</p>
                 <p className="text-sm text-gray-500">Welcome, {user?.full_name}</p>
               </div>
             </div>

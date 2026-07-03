@@ -12,7 +12,7 @@ export function Footer() {
                 <Vote className="w-6 h-6 text-white" />
               </div>
               <div>
-                <span className="text-xl font-bold">UEVS</span>
+                <span className="text-xl font-bold">HTU E-VOTING SYSTEM</span>
                 <p className="text-xs text-gray-400">Electronic Voting System</p>
               </div>
             </Link>
