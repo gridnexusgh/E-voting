@@ -132,7 +132,7 @@ export async function getElectionCandidateVoteTotals(electionId: string) {
     .from('election_candidates')
     .select(`
       *,
-      user:users(id, full_name, email),
+      user:users!election_candidates_user_id_fkey(id, full_name, email),
       position:election_positions(id, position_name)
     `)
     .eq('election_id', electionId)
@@ -209,7 +209,7 @@ export async function getCandidatesForElection(electionId: string, includeReject
     .from('election_candidates')
     .select(`
       *,
-      user:users(id, full_name, email),
+      user:users!election_candidates_user_id_fkey(id, full_name, email),
       position:election_positions(id, position_name),
       student:student_records(id, student_id, full_name)
     `)
@@ -230,7 +230,7 @@ export async function getPendingCandidates(electionId: string) {
     .from('election_candidates')
     .select(`
       *,
-      user:users(id, full_name, email),
+      user:users!election_candidates_user_id_fkey(id, full_name, email),
       position:election_positions(id, position_name),
       student:student_records(id, student_id, full_name)
     `)
@@ -295,7 +295,7 @@ export async function getElectionPayments(electionId: string) {
       *,
       candidate:election_candidates(
         id,
-        user:users(full_name, email),
+        user:users!election_candidates_user_id_fkey(full_name, email),
         position:election_positions(position_name)
       )
     `)

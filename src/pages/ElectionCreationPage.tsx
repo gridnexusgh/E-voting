@@ -167,11 +167,11 @@ export function ElectionCreationPage() {
         enable_payment: false,
         total_voters: 0,
         total_votes_cast: 0,
-        status: "draft",
+        status: "published",
       });
 
       setSuccess(
-        "Election created successfully. You can now add slots and positions.",
+        "Election created and published successfully. You can now add slots and positions.",
       );
       setForm(initialForm);
       setDepartments([]);
@@ -185,7 +185,7 @@ export function ElectionCreationPage() {
   return (
     <div className="space-y-6">
       <div className="rounded-3xl bg-white p-8 shadow-lg border border-slate-200 sm:p-10">
-        <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col gap-4 justify-between mb-6 sm:flex-row sm:items-start sm:gap-6">
           <div>
             <p className="text-sm uppercase tracking-[0.24em] text-blue-600">
               Create Election
@@ -193,6 +193,9 @@ export function ElectionCreationPage() {
             <h1 className="mt-2 text-2xl font-semibold text-slate-900">
               Add a new election
             </h1>
+            <p className="mt-2 text-sm text-slate-500 max-w-2xl">
+              This election will be published immediately and become visible to students once slots are created and enabled.
+            </p>
           </div>
           <div className="rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-700">
             {form.category === "university" && "University-wide election"}

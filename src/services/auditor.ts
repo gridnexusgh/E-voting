@@ -363,7 +363,7 @@ export async function getAuditorDashboardData(): Promise<AuditorDashboardData> {
           submission_date,
           election:elections(id,title,status),
           position:election_positions(id,position_name),
-          user:users(id,full_name,email),
+          user:users!election_candidates_user_id_fkey(id,full_name,email),
           student:student_records(id,full_name,student_id)
         `)
         .order('submission_date', { ascending: false }),

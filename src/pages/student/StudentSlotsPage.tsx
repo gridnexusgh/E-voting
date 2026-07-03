@@ -28,6 +28,7 @@ export function StudentSlotsPage() {
   const [error, setError] = useState("");
   const [slots, setSlots] = useState<Slot[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
   function openSlot(s: Slot) {
     setSelected(s);
@@ -79,16 +80,63 @@ export function StudentSlotsPage() {
           throw error;
         }
 
-        const now = new Date();
-      const visibleSlots = (data ?? []).filter((position: any) => {
-        const election = position.election;
-        if (!election) return false;
-        if (position.status === 'draft') return false;
-        if (election.status === 'draft') return false;
-        if (election.category === 'faculty' && election.scope_id !== user.faculty_id) return false;
-        if (election.category === 'department' && election.scope_id !== user.department_id) return false;
-        return ['published', 'active', 'closed', 'results_published'].includes(election.status);
-      });
+        const rawPositions = data ?? [];
+        const totals = {
+          noElection: 0,
+          draftPosition: 0,
+          draftElection: 0,
+          facultyMismatch: 0,
+          departmentMismatch: 0,
+          statusMismatch: 0,
+        };
+
+        const visibleSlots = rawPositions.filter((position: any) => {
+          const election = position.election;
+          if (!election) {
+            totals.noElection += 1;
+            return false;
+          }
+          if (position.status === 'draft') {
+            totals.draftPosition += 1;
+            return false;
+          }
+          if (election.status === 'draft') {
+            totals.draftElection += 1;
+            return false;
+          }
+          if (election.category === 'faculty' && election.scope_id !== user.faculty_id) {
+            totals.facultyMismatch += 1;
+            return false;
+          }
+          if (election.category === 'department' && election.scope_id !== user.department_id) {
+            totals.departmentMismatch += 1;
+            return false;
+          }
+          if (!['published', 'active', 'closed', 'results_published'].includes(election.status)) {
+            totals.statusMismatch += 1;
+            return false;
+          }
+          return true;
+        });
+
+        const debugLines = [
+          `Loaded ${rawPositions.length} enabled slot positions`,
+          `Visible slots: ${visibleSlots.length}`,
+        ];
+
+        Object.entries(totals).forEach(([key, count]) => {
+          if (count > 0) {
+            debugLines.push(`${key}: ${count}`);
+          }
+        });
+
+        console.groupCollapsed('StudentSlotsPage slot load debug');
+        console.log('Student:', { id: user.id, faculty_id: user.faculty_id, department_id: user.department_id });
+        console.log('Raw positions', rawPositions);
+        console.log('Visible slots', visibleSlots);
+        console.log('Filter totals', totals);
+        console.groupEnd();
+        setDebugInfo(debugLines);
 
       setSlots(
         visibleSlots.map((position: any) => {
@@ -144,6 +192,17 @@ export function StudentSlotsPage() {
           Apply for a nomination slot published by the Election Officer.
         </p>
       </div>
+
+      {debugInfo.length > 0 && (
+        <div className="rounded-2xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-slate-700">
+          <p className="font-semibold text-slate-900">Debug info</p>
+          <ul className="mt-2 list-disc list-inside space-y-1">
+            {debugInfo.map((line, index) => (
+              <li key={index}>{line}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {isLoadingSlots ? (
