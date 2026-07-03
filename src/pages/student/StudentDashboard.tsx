@@ -69,20 +69,20 @@ export function StudentDashboard() {
 
     async function loadNames() {
       try {
-        if (user.faculty_id) {
+        if (u.faculty_id) {
           const { data: fac } = await supabase
             .from('faculties')
             .select('name')
-            .eq('id', user.faculty_id)
+            .eq("id", u.faculty_id)
             .maybeSingle();
           setFacultyName(fac?.name ?? null);
         }
 
-        if (user.department_id) {
+        if (u.department_id) {
           const { data: dept } = await supabase
             .from('departments')
             .select('name')
-            .eq('id', user.department_id)
+            .eq("id", u.department_id)
             .maybeSingle();
           setDepartmentName(dept?.name ?? null);
         }
