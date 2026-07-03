@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Pencil, ArrowRight, Camera, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowRight, Camera, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { StudentSidebar } from "./StudentSidebar";
 import { StudentHeader } from "./StudentHeader";
 import { VotingBallotPage } from "./VotingBallotPage";
@@ -65,6 +65,7 @@ export function StudentDashboard() {
 
   useEffect(() => {
     if (!user) return;
+    const u = user;
 
     async function loadNames() {
       try {
