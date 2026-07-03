@@ -51,14 +51,46 @@ export function StudentSlotsPage() {
     setStage("payment");
   }
 
-  function authorizePayment() {
+  async function authorizePayment() {
+    if (!selected || !user) return;
     setStage("processing");
-    setTimeout(() => {
-      const ref = "HTU-" + Math.random().toString(36).slice(2, 10).toUpperCase();
-      setSubmitted((s) => ({ ...s, [selected!.id]: ref }));
+    try {
+      // Phase B: file the application into election_candidates
+      const { data, error: insertError } = await supabase
+        .from("election_candidates")
+        .insert([
+          {
+            election_id: (selected as any).election_id,
+            position_id: selected.id,
+            user_id: user.id,
+            student_record_id: user.student_record_id ?? null,
+            application_status: "pending",
+            payment_status: "successful",
+            is_visible_for_voting: false,
+            manifesto: declaration,
+            submission_date: new Date().toISOString(),
+          },
+        ])
+        .select("id")
+        .single();
+
+      if (insertError) throw insertError;
+
+      const ref =
+        "HTU-" + (data?.id ? String(data.id).slice(0, 8).toUpperCase() : Math.random().toString(36).slice(2, 10).toUpperCase());
+      setSubmitted((s) => ({ ...s, [selected.id]: ref }));
       setStage("done");
-    }, 1500);
+    } catch (err: any) {
+      const code = err?.code ?? "";
+      const msg =
+        code === "23505"
+          ? "You have already applied for this position."
+          : err?.message || "Unable to submit application. Please try again.";
+      setError(msg);
+      setStage("form");
+    }
   }
+
 
   useEffect(() => {
     if (!user?.id) return;
