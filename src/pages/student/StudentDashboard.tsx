@@ -68,6 +68,7 @@ export function StudentDashboard() {
 
     async function loadNames() {
       if (!user) return;
+      try {
         if (user.faculty_id) {
           const { data: fac } = await supabase
             .from('faculties')
