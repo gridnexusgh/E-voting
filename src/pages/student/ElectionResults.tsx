@@ -174,6 +174,7 @@ function LiveStudentElectionResult({ category, title, subtitle }: LiveStudentEle
     let active = true;
 
     async function loadElectionResults() {
+      if (!user) return;
       setIsLoading(true);
       setError("");
       setPortfolios([]);
