@@ -35,8 +35,12 @@ A React + TypeScript + Vite frontend for a university election platform with Sup
 Create a `.env` file at the project root with:
 
 ```env
-VITE_SUPABASE_URL=<your-supabase-url>
-VITE_SUPABASE_ANON_KEY=<your-supabase-anon-key>
+VITE_SUPABASE_URL=https://nlypntrvvvlcarcprkij.supabase.co
+
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seXBudHJ2dnZsY2FyY3Bya2lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5MTA0NDEsImV4cCI6MjA5ODQ4NjQ0MX0.tzVNPuLDTdRsEuotOCHvdaHMnZTku16lukuYUO6kvgY
+
+SUPABASE_SERVICE_ROLE=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seXBudHJ2dnZsY2FyY3Bya2lqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjkxMDQ0MSwiZXhwIjoyMDk4NDg2NDQxfQ.j3JmvKtvNO1VDmtwxnixr-JxiUNIZb0RRbxggNXC9sg
+
 ```
 
 If you deploy edge functions or use external email/SMS services, also configure those in your Supabase project environment.
