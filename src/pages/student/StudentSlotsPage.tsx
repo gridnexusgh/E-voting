@@ -5,6 +5,7 @@ import { supabase } from "../../services/supabase";
 
 interface Slot {
   id: string;
+  election_id: string;
   position_name: string;
   description?: string;
   application_fee?: number;
@@ -12,6 +13,7 @@ interface Slot {
   application_closing?: string;
   election_title?: string;
 }
+
 
 type Stage = "form" | "payment" | "processing" | "done";
 
