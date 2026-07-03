@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { Calendar, User, Eye, Loader2, Download } from 'lucide-react';
+=======
+import { AlertCircle, Calendar, User, Eye, Loader2, Download } from 'lucide-react';
+>>>>>>> 0be1c7e3522f3e55cac62c65274d602002fc8368
 import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabase';
 

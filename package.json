@@ -17,6 +17,10 @@
     "@types/canvas-confetti": "^1.9.0",
     "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.4",
+<<<<<<< HEAD
+=======
+    "dotenv": "^16.6.1",
+>>>>>>> 0be1c7e3522f3e55cac62c65274d602002fc8368
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
