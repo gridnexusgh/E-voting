@@ -96,6 +96,7 @@ export function StudentSlotsPage() {
 
   useEffect(() => {
     if (!user?.id) return;
+    const u = user;
 
     async function loadSlots() {
       setIsLoadingSlots(true);
@@ -106,24 +107,21 @@ export function StudentSlotsPage() {
           .eq('is_enabled', true)
           .order('display_order', { ascending: true });
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
         const visibleSlots = (data ?? []).filter((position: any) => {
           const election = position.election;
-          if (!election || !['published', 'active'].includes(election.status)) {
-            return false;
-          }
+          if (!election || !['published', 'active'].includes(election.status)) return false;
           if (election.category === 'university') return true;
-          if (election.category === 'faculty') return election.scope_id === user.faculty_id;
-          if (election.category === 'department') return election.scope_id === user.department_id;
+          if (election.category === 'faculty') return election.scope_id === u.faculty_id;
+          if (election.category === 'department') return election.scope_id === u.department_id;
           return false;
         });
 
         setSlots(
-          visibleSlots.map((position: any) => ({
+          visibleSlots.map((position: any): Slot => ({
             id: position.id,
+            election_id: position.election_id ?? position.election?.id,
             position_name: position.position_name,
             description: position.description,
             application_fee: position.application_fee ?? 0,
@@ -132,6 +130,28 @@ export function StudentSlotsPage() {
             election_title: position.election?.title ?? 'Election slot',
           })),
         );
+
+        // Detect if the current user already applied for any of these positions
+        // (so we can lock the button on refresh).
+        const posIds = visibleSlots.map((p: any) => p.id);
+        if (posIds.length > 0) {
+          const { data: existing } = await supabase
+            .from('election_candidates')
+            .select('id, position_id')
+            .eq('user_id', u.id)
+            .in('position_id', posIds);
+          if (existing) {
+            setSubmitted((prev) => {
+              const next = { ...prev };
+              existing.forEach((row: any) => {
+                if (!next[row.position_id]) {
+                  next[row.position_id] = 'HTU-' + String(row.id).slice(0, 8).toUpperCase();
+                }
+              });
+              return next;
+            });
+          }
+        }
       } catch {
         setError('Unable to load open slots. Please try again.');
       } finally {
@@ -140,7 +160,20 @@ export function StudentSlotsPage() {
     }
 
     loadSlots();
+
+    // Phase A realtime: watch both elections and election_positions so any
+    // Officer-side mutation streams straight into the student's card grid.
+    const channel = supabase
+      .channel('student-slots-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'election_positions' }, loadSlots)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'elections' }, loadSlots)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user?.id]);
+
 
   return (
     <section className="space-y-6">
