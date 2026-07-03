@@ -171,6 +171,8 @@ function LiveStudentElectionResult({ category, title, subtitle }: LiveStudentEle
 
   useEffect(() => {
     if (!user) return;
+    const u = user;
+
     let active = true;
 
     async function loadElectionResults() {
@@ -180,19 +182,19 @@ function LiveStudentElectionResult({ category, title, subtitle }: LiveStudentEle
 
       try {
         const elections = await getCompletedStudentElections(
-          user.faculty_id,
-          user.department_id,
+          u.faculty_id,
+          u.department_id,
         );
 
         const visibleElections = elections.filter((election) => {
           if (category === "university") return election.category === "university";
           if (category === "faculty") return (
             election.category === "faculty" &&
-            election.scope_id === user.faculty_id
+            election.scope_id === u.faculty_id
           );
           if (category === "department") return (
             election.category === "department" &&
-            election.scope_id === user.department_id
+            election.scope_id === u.department_id
           );
           return false;
         });
