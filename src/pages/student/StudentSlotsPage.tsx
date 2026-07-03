@@ -64,6 +64,7 @@ export function StudentSlotsPage() {
     if (!user?.id) return;
 
     async function loadSlots() {
+      if (!user) return;
       setIsLoadingSlots(true);
       try {
         const { data, error } = await supabase

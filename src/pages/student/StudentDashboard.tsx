@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Pencil, ArrowRight, Camera, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowRight, Camera, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { StudentSidebar } from "./StudentSidebar";
 import { StudentHeader } from "./StudentHeader";
 import { VotingBallotPage } from "./VotingBallotPage";
@@ -53,8 +53,17 @@ const votingSteps = [
 export function StudentDashboard() {
   const { user } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("dashboard");
   const [isVerifiedForVote, setIsVerifiedForVote] = useState(false);
+
+  const handleToggleSidebar = () => {
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) {
+      setIsSidebarOpen((o) => !o);
+    } else {
+      setSidebarCollapsed((c) => !c);
+    }
+  };
 
   const firstName =
     user?.full_name?.split(" ")[0]?.toUpperCase() || "STUDENT";
@@ -67,6 +76,7 @@ export function StudentDashboard() {
     if (!user) return;
 
     async function loadNames() {
+      if (!user) return;
       try {
         if (user.faculty_id) {
           const { data: fac } = await supabase
@@ -99,14 +109,16 @@ export function StudentDashboard() {
         collapsed={sidebarCollapsed}
         activeItem={activeItem}
         onSelect={setActiveItem}
+        mobileOpen={isSidebarOpen}
+        onMobileClose={() => setIsSidebarOpen(false)}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
         <StudentHeader
-          onToggleSidebar={() => setSidebarCollapsed((c) => !c)}
+          onToggleSidebar={handleToggleSidebar}
         />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
+        <main className="flex-1 min-w-0 overflow-x-hidden p-4 sm:p-6 lg:p-8 space-y-6">
           {activeItem === "vote" ? (
             isVerifiedForVote ? (
               <VotingBallotPage onExit={() => setActiveItem("dashboard")} />
