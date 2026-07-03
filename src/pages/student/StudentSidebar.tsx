@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Home,
   Vote as VoteIcon,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../../services/supabase";
 import htuLogo from "../../assets/HTU.png";
 
 interface StudentSidebarProps {
@@ -44,6 +45,7 @@ export function StudentSidebar({
   };
   const [resultsOpen, setResultsOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
+  const [slotsAvailable, setSlotsAvailable] = useState(false);
 
   const handleSelect = (item: string) => onSelect?.(item);
 
@@ -54,6 +56,29 @@ export function StudentSidebar({
     : "px-4 py-3 justify-start";
   const activeClass = "bg-white/10 text-white rounded-xl shadow-md";
   const idleClass = "text-blue-100 hover:bg-white/5 hover:text-white";
+
+  useEffect(() => {
+    async function loadSlotAvailability() {
+      try {
+        const { data, error } = await supabase
+          .from("election_positions")
+          .select("id")
+          .eq("is_enabled", true)
+          .limit(1);
+
+        if (error) {
+          console.error("Unable to fetch slot availability", error);
+          return;
+        }
+
+        setSlotsAvailable((data?.length ?? 0) > 0);
+      } catch (error) {
+        console.error("Error loading slot availability", error);
+      }
+    }
+
+    loadSlotAvailability();
+  }, []);
 
   const menuLabel = (text: string) => (
     <span
@@ -177,8 +202,14 @@ export function StudentSidebar({
               {menuLabel("Slots")}
             </span>
             {!collapsed && (
-              <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded">
-                CLOSED
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                  slotsAvailable
+                    ? "bg-emerald-500 text-white"
+                    : "bg-red-500 text-white"
+                }`}
+              >
+                {slotsAvailable ? "OPEN" : "CLOSED"}
               </span>
             )}
           </button>

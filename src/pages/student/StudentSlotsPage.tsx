@@ -11,6 +11,9 @@ interface Slot {
   application_opening?: string;
   application_closing?: string;
   election_title?: string;
+  election_status?: string;
+  position_status?: string;
+  slot_state: "open" | "closed" | "upcoming" | "draft";
 }
 
 type Stage = "form" | "payment" | "processing" | "done";
@@ -76,19 +79,40 @@ export function StudentSlotsPage() {
           throw error;
         }
 
-        const visibleSlots = (data ?? []).filter((position: any) => {
-          const election = position.election;
-          if (!election || !['published', 'active'].includes(election.status)) {
-            return false;
-          }
-          if (election.category === 'university') return true;
-          if (election.category === 'faculty') return election.scope_id === user.faculty_id;
-          if (election.category === 'department') return election.scope_id === user.department_id;
-          return false;
-        });
+        const now = new Date();
+      const visibleSlots = (data ?? []).filter((position: any) => {
+        const election = position.election;
+        if (!election) return false;
+        if (position.status === 'draft') return false;
+        if (election.status === 'draft') return false;
+        if (election.category === 'faculty' && election.scope_id !== user.faculty_id) return false;
+        if (election.category === 'department' && election.scope_id !== user.department_id) return false;
+        return ['published', 'active', 'closed', 'results_published'].includes(election.status);
+      });
 
-        setSlots(
-          visibleSlots.map((position: any) => ({
+      setSlots(
+        visibleSlots.map((position: any) => {
+          const election = position.election;
+          const opening = position.application_opening ? new Date(position.application_opening) : null;
+          const closing = position.application_closing ? new Date(position.application_closing) : null;
+          let slot_state: Slot['slot_state'] = 'open';
+
+          if (position.status === 'draft' || election?.status === 'draft') {
+            slot_state = 'draft';
+          } else if (
+            position.status === 'closed' ||
+            election?.status === 'closed' ||
+            election?.status === 'results_published' ||
+            (closing && now > closing)
+          ) {
+            slot_state = 'closed';
+          } else if (opening && now < opening) {
+            slot_state = 'upcoming';
+          } else {
+            slot_state = 'open';
+          }
+
+          return {
             id: position.id,
             position_name: position.position_name,
             description: position.description,
@@ -96,8 +120,12 @@ export function StudentSlotsPage() {
             application_opening: position.application_opening,
             application_closing: position.application_closing,
             election_title: position.election?.title ?? 'Election slot',
-          })),
-        );
+            election_status: position.election?.status,
+            position_status: position.status,
+            slot_state,
+          };
+        }),
+      );
       } catch {
         setError('Unable to load open slots. Please try again.');
       } finally {
@@ -133,12 +161,37 @@ export function StudentSlotsPage() {
         ) : (
           slots.map((s) => {
             const applied = submitted[s.id];
+            const isClosed = s.slot_state === 'closed' || s.slot_state === 'draft';
+            const statusLabel =
+              s.slot_state === 'draft'
+                ? 'Draft'
+                : s.slot_state === 'upcoming'
+                ? 'Upcoming'
+                : s.slot_state === 'closed'
+                ? 'Closed'
+                : 'Open';
+
             return (
               <div
                 key={s.id}
                 className="bg-white rounded-2xl border border-gray-100 shadow-md p-6 flex flex-col"
               >
-                <h3 className="text-lg font-bold text-gray-900">{s.position_name}</h3>
+                <div className="flex items-center justify-between gap-4">
+                  <h3 className="text-lg font-bold text-gray-900">{s.position_name}</h3>
+                  <span
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide ${
+                      statusLabel === 'Open'
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : statusLabel === 'Upcoming'
+                        ? 'bg-blue-100 text-blue-700'
+                        : statusLabel === 'Draft'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {statusLabel}
+                  </span>
+                </div>
                 <p className="mt-1 text-sm text-gray-500">
                   Election: <span className="font-medium text-slate-700">{s.election_title}</span>
                 </p>
@@ -159,9 +212,14 @@ export function StudentSlotsPage() {
                 ) : (
                   <button
                     onClick={() => openSlot(s)}
-                    className="mt-5 bg-gradient-to-r from-[#0C1E4E] to-[#0E1E38] text-white font-semibold px-4 py-2.5 rounded-full hover:opacity-90 transition"
+                    disabled={isClosed}
+                    className={`mt-5 w-full font-semibold px-4 py-2.5 rounded-full transition ${
+                      isClosed
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-[#0C1E4E] to-[#0E1E38] text-white hover:opacity-90'
+                    }`}
                   >
-                    Apply for Slot
+                    {isClosed ? 'Unavailable' : 'Apply for Slot'}
                   </button>
                 )}
               </div>

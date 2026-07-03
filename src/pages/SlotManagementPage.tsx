@@ -222,6 +222,21 @@ export function SlotManagementPage() {
       return;
     }
 
+    const duplicateSlot = slots.find(
+      (slot) =>
+        slot.election_id === form.electionId &&
+        slot.position_name.trim().toLowerCase() ===
+          form.slotName.trim().toLowerCase() &&
+        slot.id !== editingSlotId,
+    );
+
+    if (duplicateSlot) {
+      setError(
+        "A slot with this position name already exists for the selected election.",
+      );
+      return;
+    }
+
     setIsSaving(true);
 
     try {
@@ -311,8 +326,14 @@ export function SlotManagementPage() {
       }
 
       resetForm();
-    } catch {
-      setError("Unable to save slot. Please try again.");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : (err as any)?.message ||
+            (err as any)?.details ||
+            "Unable to save slot. Please try again.";
+      setError(message);
     } finally {
       setIsSaving(false);
     }
