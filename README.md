@@ -18,7 +18,7 @@ A React + TypeScript + Vite frontend for a university election platform with Sup
 ## Key application behavior
 
 - Role-based routes for `student`, `election_officer`, `admin`, and `auditor`
-- Student login requires email verification and face enrollment before voting
+- Student login requires  face enrollment before voting
 - Student dashboard includes:
   - vote entry with biometric verification gate
   - open slot listing for eligible election positions
@@ -35,11 +35,15 @@ A React + TypeScript + Vite frontend for a university election platform with Sup
 Create a `.env` file at the project root with:
 
 ```env
+
+
 VITE_SUPABASE_URL=https://nlypntrvvvlcarcprkij.supabase.co
 
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seXBudHJ2dnZsY2FyY3Bya2lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5MTA0NDEsImV4cCI6MjA5ODQ4NjQ0MX0.tzVNPuLDTdRsEuotOCHvdaHMnZTku16lukuYUO6kvgY
 
 SUPABASE_SERVICE_ROLE=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5seXBudHJ2dnZsY2FyY3Bya2lqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjkxMDQ0MSwiZXhwIjoyMDk4NDg2NDQxfQ.j3JmvKtvNO1VDmtwxnixr-JxiUNIZb0RRbxggNXC9sg
+
+
 
 ```
 
@@ -164,15 +168,14 @@ Enable SMTP in Supabase Auth settings and verify email delivery. The login flow 
    - verify a student record from `student_records`
    - use a valid faculty and department
    - complete account creation
-4. Confirm the email link sent by Supabase
-5. Complete face enrollment at `/face-enrollment`
-6. Log in as the student and open `/student/dashboard`
-7. Use the sidebar to access:
+4. Complete face enrollment at `/face-enrollment`
+5. Log in as the student and open `/student/dashboard`
+6. Use the sidebar to access:
    - `Vote` (biometric verification gate)
    - `Slots` (active, eligible election positions)
    - `Results` (category-based election tallies)
-8. Log in as an election officer and verify officer dashboard at `/election-officer/dashboard`
-9. Log in as admin and verify admin metrics at `/admin`
+7. Log in as an election officer and verify officer dashboard at `/election-officer/dashboard`
+8. Log in as admin and verify admin metrics at `/admin`
 
 ## Notes on student slot visibility
 
