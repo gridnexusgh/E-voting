@@ -171,6 +171,8 @@ function LiveStudentElectionResult({ category, title, subtitle }: LiveStudentEle
 
   useEffect(() => {
     if (!user) return;
+    const u = user;
+
     let active = true;
 
     async function loadElectionResults() {
