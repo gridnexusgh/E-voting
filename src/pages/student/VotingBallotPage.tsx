@@ -128,8 +128,7 @@ export function VotingBallotPage({
               slogan: c.manifesto ?? "",
             })),
           };
-        })
-        .filter((portfolio) => portfolio.candidates.length > 0);
+        });
 
       setLivePortfolios(built);
     } catch {
