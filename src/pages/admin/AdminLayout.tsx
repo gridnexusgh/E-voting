@@ -113,20 +113,7 @@ export function AdminLayout() {
       </aside>
 
       <main className="lg:ml-72 pt-16 lg:pt-0">
-        <DashboardBranding
-          title="HTU ELECTION"
-          subtitle="ADMIN CONSOLE"
-          onToggleSidebar={() => setSidebarOpen((open) => !open)}
-          rightContent={
-            <button
-              onClick={logout}
-              className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-500/20 hover:bg-blue-700 transition"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </button>
-          }
-        />
+        
 
         <div className="px-4 sm:px-6 lg:px-8 py-8">
           <Outlet />
