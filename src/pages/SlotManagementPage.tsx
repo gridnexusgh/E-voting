@@ -222,8 +222,6 @@ export function SlotManagementPage() {
       return;
     }
 
-<<<<<<< HEAD
-=======
     const duplicateSlot = slots.find(
       (slot) =>
         slot.election_id === form.electionId &&
@@ -239,7 +237,6 @@ export function SlotManagementPage() {
       return;
     }
 
->>>>>>> 0be1c7e3522f3e55cac62c65274d602002fc8368
     setIsSaving(true);
 
     try {
@@ -329,10 +326,6 @@ export function SlotManagementPage() {
       }
 
       resetForm();
-<<<<<<< HEAD
-    } catch {
-      setError("Unable to save slot. Please try again.");
-=======
     } catch (err) {
       const message =
         err instanceof Error
@@ -341,7 +334,6 @@ export function SlotManagementPage() {
             (err as any)?.details ||
             "Unable to save slot. Please try again.";
       setError(message);
->>>>>>> 0be1c7e3522f3e55cac62c65274d602002fc8368
     } finally {
       setIsSaving(false);
     }

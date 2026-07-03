@@ -5,13 +5,18 @@ import { supabase } from "../../services/supabase";
 
 interface Slot {
   id: string;
+  election_id: string;
   position_name: string;
   description?: string;
   application_fee?: number;
   application_opening?: string;
   application_closing?: string;
   election_title?: string;
+  election_status?: string;
+  position_status?: string;
+  slot_state: "open" | "closed" | "upcoming" | "draft";
 }
+
 
 type Stage = "form" | "payment" | "processing" | "done";
 
@@ -52,20 +57,52 @@ export function StudentSlotsPage() {
     setStage("payment");
   }
 
-  function authorizePayment() {
+  async function authorizePayment() {
+    if (!selected || !user) return;
     setStage("processing");
-    setTimeout(() => {
-      const ref = "HTU-" + Math.random().toString(36).slice(2, 10).toUpperCase();
-      setSubmitted((s) => ({ ...s, [selected!.id]: ref }));
+    try {
+      // Phase B: file the application into election_candidates
+      const { data, error: insertError } = await supabase
+        .from("election_candidates")
+        .insert([
+          {
+            election_id: (selected as any).election_id,
+            position_id: selected.id,
+            user_id: user.id,
+            student_record_id: user.student_record_id ?? null,
+            application_status: "pending",
+            payment_status: "successful",
+            is_visible_for_voting: false,
+            manifesto: declaration,
+            submission_date: new Date().toISOString(),
+          },
+        ])
+        .select("id")
+        .single();
+
+      if (insertError) throw insertError;
+
+      const ref =
+        "HTU-" + (data?.id ? String(data.id).slice(0, 8).toUpperCase() : Math.random().toString(36).slice(2, 10).toUpperCase());
+      setSubmitted((s) => ({ ...s, [selected.id]: ref }));
       setStage("done");
-    }, 1500);
+    } catch (err: any) {
+      const code = err?.code ?? "";
+      const msg =
+        code === "23505"
+          ? "You have already applied for this position."
+          : err?.message || "Unable to submit application. Please try again.";
+      setError(msg);
+      setStage("form");
+    }
   }
+
 
   useEffect(() => {
     if (!user?.id) return;
+    const u = user;
 
     async function loadSlots() {
-      if (!user) return;
       setIsLoadingSlots(true);
       try {
         const { data, error } = await supabase
@@ -74,32 +111,62 @@ export function StudentSlotsPage() {
           .eq('is_enabled', true)
           .order('display_order', { ascending: true });
 
-        if (error) {
-          throw error;
-        }
+        if (error) throw error;
 
-        const visibleSlots = (data ?? []).filter((position: any) => {
+        const rawPositions = data ?? [];
+        const totals = {
+          noElection: 0,
+          draftPosition: 0,
+          draftElection: 0,
+          facultyMismatch: 0,
+          departmentMismatch: 0,
+          statusMismatch: 0,
+        };
+
+        const visibleSlots = rawPositions.filter((position: any) => {
           const election = position.election;
-          if (!election || !['published', 'active'].includes(election.status)) {
-            return false;
-          }
+          if (!election || !['published', 'active'].includes(election.status)) return false;
           if (election.category === 'university') return true;
-          if (election.category === 'faculty') return election.scope_id === user.faculty_id;
-          if (election.category === 'department') return election.scope_id === user.department_id;
+          if (election.category === 'faculty') return election.scope_id === u.faculty_id;
+          if (election.category === 'department') return election.scope_id === u.department_id;
           return false;
         });
 
         setSlots(
-          visibleSlots.map((position: any) => ({
+          visibleSlots.map((position: any): Slot => ({
             id: position.id,
+            election_id: position.election_id ?? position.election?.id,
             position_name: position.position_name,
             description: position.description,
             application_fee: position.application_fee ?? 0,
             application_opening: position.application_opening,
             application_closing: position.application_closing,
             election_title: position.election?.title ?? 'Election slot',
+            slot_state: "open"
           })),
         );
+
+        // Detect if the current user already applied for any of these positions
+        // (so we can lock the button on refresh).
+        const posIds = visibleSlots.map((p: any) => p.id);
+        if (posIds.length > 0) {
+          const { data: existing } = await supabase
+            .from('election_candidates')
+            .select('id, position_id')
+            .eq('user_id', u.id)
+            .in('position_id', posIds);
+          if (existing) {
+            setSubmitted((prev) => {
+              const next = { ...prev };
+              existing.forEach((row: any) => {
+                if (!next[row.position_id]) {
+                  next[row.position_id] = 'HTU-' + String(row.id).slice(0, 8).toUpperCase();
+                }
+              });
+              return next;
+            });
+          }
+        }
       } catch {
         setError('Unable to load open slots. Please try again.');
       } finally {
@@ -108,7 +175,20 @@ export function StudentSlotsPage() {
     }
 
     loadSlots();
+
+    // Phase A realtime: watch both elections and election_positions so any
+    // Officer-side mutation streams straight into the student's card grid.
+    const channel = supabase
+      .channel('student-slots-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'election_positions' }, loadSlots)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'elections' }, loadSlots)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user?.id]);
+
 
   return (
     <section className="space-y-6">
@@ -146,12 +226,37 @@ export function StudentSlotsPage() {
         ) : (
           slots.map((s) => {
             const applied = submitted[s.id];
+            const isClosed = s.slot_state === 'closed' || s.slot_state === 'draft';
+            const statusLabel =
+              s.slot_state === 'draft'
+                ? 'Draft'
+                : s.slot_state === 'upcoming'
+                ? 'Upcoming'
+                : s.slot_state === 'closed'
+                ? 'Closed'
+                : 'Open';
+
             return (
               <div
                 key={s.id}
                 className="bg-white rounded-2xl border border-gray-100 shadow-md p-6 flex flex-col"
               >
-                <h3 className="text-lg font-bold text-gray-900">{s.position_name}</h3>
+                <div className="flex items-center justify-between gap-4">
+                  <h3 className="text-lg font-bold text-gray-900">{s.position_name}</h3>
+                  <span
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide ${
+                      statusLabel === 'Open'
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : statusLabel === 'Upcoming'
+                        ? 'bg-blue-100 text-blue-700'
+                        : statusLabel === 'Draft'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {statusLabel}
+                  </span>
+                </div>
                 <p className="mt-1 text-sm text-gray-500">
                   Election: <span className="font-medium text-slate-700">{s.election_title}</span>
                 </p>
@@ -172,9 +277,14 @@ export function StudentSlotsPage() {
                 ) : (
                   <button
                     onClick={() => openSlot(s)}
-                    className="mt-5 bg-gradient-to-r from-[#0C1E4E] to-[#0E1E38] text-white font-semibold px-4 py-2.5 rounded-full hover:opacity-90 transition"
+                    disabled={isClosed}
+                    className={`mt-5 w-full font-semibold px-4 py-2.5 rounded-full transition ${
+                      isClosed
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-[#0C1E4E] to-[#0E1E38] text-white hover:opacity-90'
+                    }`}
                   >
-                    Apply for Slot
+                    {isClosed ? 'Unavailable' : 'Apply for Slot'}
                   </button>
                 )}
               </div>
