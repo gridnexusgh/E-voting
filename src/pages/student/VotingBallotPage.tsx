@@ -62,10 +62,24 @@ export function VotingBallotPage({
         .eq("status", "active");
       if (eErr) throw eErr;
 
+      const u: any = user;
+      const facultyTokens = [u.faculty_id, u.faculty_code, u.faculty_name, u.faculty?.id, u.faculty?.name, u.faculty?.code]
+        .filter(Boolean)
+        .map((v: any) => String(v).toLowerCase());
+      const departmentTokens = [u.department_id, u.department_code, u.department_name, u.department?.id, u.department?.name, u.department?.code]
+        .filter(Boolean)
+        .map((v: any) => String(v).toLowerCase());
+
+      const matchToken = (scope: any, tokens: string[]) => {
+        if (!scope) return false;
+        const s = String(scope).toLowerCase();
+        return tokens.some((t) => t === s || t.includes(s) || s.includes(t));
+      };
+
       const visibleElections = (elections ?? []).filter((el: any) => {
         if (el.category === "university") return true;
-        if (el.category === "faculty") return el.scope_id === user.faculty_id;
-        if (el.category === "department") return el.scope_id === user.department_id;
+        if (el.category === "faculty") return matchToken(el.scope_id, facultyTokens) || matchToken(el.scope_id, departmentTokens);
+        if (el.category === "department") return matchToken(el.scope_id, departmentTokens) || matchToken(el.scope_id, facultyTokens);
         return false;
       });
 
