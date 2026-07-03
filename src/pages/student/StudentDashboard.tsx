@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowRight, Camera, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Pencil, ArrowRight, Camera, RefreshCw, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { StudentSidebar } from "./StudentSidebar";
 import { StudentHeader } from "./StudentHeader";
 import { VotingBallotPage } from "./VotingBallotPage";
@@ -65,24 +65,23 @@ export function StudentDashboard() {
 
   useEffect(() => {
     if (!user) return;
-    const u = user;
 
     async function loadNames() {
       try {
-        if (u.faculty_id) {
+        if (user.faculty_id) {
           const { data: fac } = await supabase
             .from('faculties')
             .select('name')
-            .eq("id", u.faculty_id)
+            .eq('id', user.faculty_id)
             .maybeSingle();
           setFacultyName(fac?.name ?? null);
         }
 
-        if (u.department_id) {
+        if (user.department_id) {
           const { data: dept } = await supabase
             .from('departments')
             .select('name')
-            .eq("id", u.department_id)
+            .eq('id', user.department_id)
             .maybeSingle();
           setDepartmentName(dept?.name ?? null);
         }

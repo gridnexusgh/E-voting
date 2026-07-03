@@ -1,4 +1,4 @@
-import { ShieldCheck, Users, Building2, GraduationCap, FilePlus, Users as UsersIcon } from 'lucide-react';
+import { ShieldCheck, Users, Building2, GraduationCap, FilePlus, Users as UsersIcon, Settings, FileText } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { supabase } from '../services/supabase';

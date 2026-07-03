@@ -1,25 +1,69 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowRight, CheckCircle2, Info, User as UserIcon, AlertTriangle, Loader2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ArrowRight, CheckCircle2, Info, User as UserIcon } from "lucide-react";
 import confetti from "canvas-confetti";
-import { useAuth } from "../../contexts/AuthContext";
-import { supabase } from "../../services/supabase";
 
 // ============================================================
 // 1. Data Architecture
 // ============================================================
 export interface Candidate {
-  id: string;              // election_candidates.id
+  id: string;
   name: string;
   avatarUrl?: string;
   slogan: string;
 }
 
 export interface Portfolio {
-  id: string;              // election_positions.id
-  electionId: string;      // elections.id (parent)
-  title: string;           // position_name
+  id: string;
+  title: string;
   candidates: Candidate[];
 }
+
+const MOCK_PORTFOLIOS: Portfolio[] = [
+  {
+    id: "src-president",
+    title: "SRC Presidential Election",
+    candidates: [
+      { id: "p1", name: "Adebayo Ibrahim", slogan: "For Transparent Leadership" },
+      { id: "p2", name: "Chioma Okafor", slogan: "For Transparent Leadership" },
+      { id: "p3", name: "David Nwosu", slogan: "For Transparent Leadership" },
+    ],
+  },
+  {
+    id: "gen-sec",
+    title: "General Secretary Election",
+    candidates: [
+      { id: "g1", name: "Amina Yusuf", slogan: "Service Above Self" },
+      { id: "g2", name: "Kwame Mensah", slogan: "Documentation with Integrity" },
+    ],
+  },
+  {
+    id: "fin-sec",
+    title: "Financial Secretary / Treasurer Election",
+    candidates: [
+      { id: "f1", name: "Ngozi Achebe", slogan: "Accountability First" },
+      { id: "f2", name: "Samuel Boateng", slogan: "Every Cedi Counts" },
+      { id: "f3", name: "Faith Owusu", slogan: "Transparent Books" },
+      { id: "f4", name: "Michael Asante", slogan: "Fiscal Discipline" },
+    ],
+  },
+  {
+    id: "org-sec",
+    title: "Organizing Secretary Election",
+    candidates: [
+      { id: "o1", name: "Zainab Adeola", slogan: "Events that Matter" },
+      { id: "o2", name: "Kojo Antwi", slogan: "Structure and Purpose" },
+    ],
+  },
+  {
+    id: "pro",
+    title: "PRO Election",
+    candidates: [
+      { id: "r1", name: "Linda Osei", slogan: "Your Voice, Amplified" },
+      { id: "r2", name: "Emmanuel Tetteh", slogan: "Clear Communication" },
+      { id: "r3", name: "Grace Appiah", slogan: "Story of the Students" },
+    ],
+  },
+];
 
 type VotingState = "idle" | "sliding" | "success" | "completed";
 
@@ -29,152 +73,21 @@ interface VotingBallotPageProps {
 }
 
 export function VotingBallotPage({
-  portfolios: portfoliosProp,
+  portfolios = MOCK_PORTFOLIOS,
   onExit,
 }: VotingBallotPageProps) {
-  const { user } = useAuth();
-
-  // Live-loaded portfolios (only used when caller doesn't pass an override).
-  const [livePortfolios, setLivePortfolios] = useState<Portfolio[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const portfolios = portfoliosProp ?? livePortfolios;
-
   const [currentPortfolioIndex, setCurrentPortfolioIndex] = useState(0);
-  const [draggedCandidate, setDraggedCandidate] = useState<Candidate | null>(null);
+  const [draggedCandidate, setDraggedCandidate] = useState<Candidate | null>(
+    null
+  );
   const [votingState, setVotingState] = useState<VotingState>("idle");
   const [votedCandidate, setVotedCandidate] = useState<Candidate | null>(null);
-  const [fraudAlert, setFraudAlert] = useState<string>("");
   const ballotBoxRef = useRef<HTMLDivElement | null>(null);
 
   const activePortfolio = portfolios[currentPortfolioIndex];
 
   // ============================================================
-  // Live fetch: elections + positions + approved candidates,
-  // scoped by student faculty / department (Phase C & D gate).
-  // ============================================================
-  const fetchScopedElections = useCallback(async () => {
-    if (portfoliosProp || !user) return;
-    setIsLoading(true);
-    try {
-      const { data: elections, error: eErr } = await supabase
-        .from("elections")
-        .select("id, title, category, scope_id, status")
-        .eq("status", "active");
-      if (eErr) throw eErr;
-
-      const u: any = user;
-      const facultyTokens = [u.faculty_id, u.faculty_code, u.faculty_name, u.faculty?.id, u.faculty?.name, u.faculty?.code]
-        .filter(Boolean)
-        .map((v: any) => String(v).toLowerCase());
-      const departmentTokens = [u.department_id, u.department_code, u.department_name, u.department?.id, u.department?.name, u.department?.code]
-        .filter(Boolean)
-        .map((v: any) => String(v).toLowerCase());
-
-      const matchToken = (scope: any, tokens: string[]) => {
-        if (!scope) return false;
-        const s = String(scope).toLowerCase();
-        return tokens.some((t) => t === s || t.includes(s) || s.includes(t));
-      };
-
-      const visibleElections = (elections ?? []).filter((el: any) => {
-        if (el.category === "university") return true;
-        if (el.category === "faculty") return matchToken(el.scope_id, facultyTokens) || matchToken(el.scope_id, departmentTokens);
-        if (el.category === "department") return matchToken(el.scope_id, departmentTokens) || matchToken(el.scope_id, facultyTokens);
-        return false;
-      });
-
-      if (visibleElections.length === 0) {
-        setLivePortfolios([]);
-        return;
-      }
-
-      const electionIds = visibleElections.map((e: any) => e.id);
-
-      const { data: positions, error: pErr } = await supabase
-        .from("election_positions")
-        .select("id, election_id, position_name, display_order")
-        .in("election_id", electionIds)
-        .eq("is_enabled", true)
-        .order("display_order", { ascending: true });
-      if (pErr) throw pErr;
-
-      if (!positions || positions.length === 0) {
-        setLivePortfolios([]);
-        return;
-      }
-
-      const positionIds = positions.map((p: any) => p.id);
-
-      const { data: candidates, error: cErr } = await supabase
-        .from("election_candidates")
-        .select("id, position_id, manifesto, profile_image_url, application_status, is_visible_for_voting, user:users(full_name)")
-        .in("position_id", positionIds)
-        .eq("application_status", "approved")
-        .eq("is_visible_for_voting", true);
-      if (cErr) throw cErr;
-
-      // Assemble portfolios; drop positions without any approved candidates.
-      const built: Portfolio[] = positions
-        .map((p: any) => {
-          const posCands = (candidates ?? []).filter((c: any) => c.position_id === p.id);
-          return {
-            id: p.id,
-            electionId: p.election_id,
-            title: p.position_name,
-            candidates: posCands.map((c: any) => ({
-              id: c.id,
-              name: c.user?.full_name ?? "Candidate",
-              avatarUrl: c.profile_image_url,
-              slogan: c.manifesto ?? "",
-            })),
-          };
-        });
-
-      setLivePortfolios(built);
-    } catch {
-      setLivePortfolios([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [portfoliosProp, user]);
-
-  useEffect(() => {
-    if (portfoliosProp) {
-      setIsLoading(false);
-      return;
-    }
-    fetchScopedElections();
-
-    // Real-time master engine: monitor elections / positions / candidates
-    // simultaneously so Officer approvals stream instantly into the ballot.
-    const channel = supabase
-      .channel("master-election-engine")
-      .on("postgres_changes", { event: "*", schema: "public", table: "elections" }, fetchScopedElections)
-      .on("postgres_changes", { event: "*", schema: "public", table: "election_positions" }, fetchScopedElections)
-      .on("postgres_changes", { event: "*", schema: "public", table: "election_candidates" }, fetchScopedElections)
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [fetchScopedElections, portfoliosProp]);
-
-  // ============================================================
-  // Loading state
-  // ============================================================
-  if (isLoading) {
-    return (
-      <div className="min-h-full flex items-center justify-center p-8">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 max-w-md w-full p-10 text-center">
-          <Loader2 className="mx-auto h-10 w-10 text-[#0E1E38] animate-spin" />
-          <p className="mt-4 text-slate-600">Loading your ballot…</p>
-        </div>
-      </div>
-    );
-  }
-
-  // ============================================================
-  // Empty state (no active elections OR no approved candidates yet)
+  // Empty state
   // ============================================================
   if (!portfolios || portfolios.length === 0 || !activePortfolio) {
     return (
@@ -224,30 +137,6 @@ export function VotingBallotPage({
     setDraggedCandidate(null);
   };
 
-  const persistVote = async (chosen: Candidate) => {
-    try {
-      const { error } = await supabase.from("election_votes").insert([
-        {
-          election_id: activePortfolio.electionId,
-          position_id: activePortfolio.id,
-          candidate_id: chosen.id,
-          voter_id: user?.id ?? null,
-        },
-      ]);
-      if (error) throw error;
-      setFraudAlert("");
-    } catch (err: any) {
-      const code = err?.code ?? "";
-      if (code === "23505") {
-        setFraudAlert(
-          "Double vote blocked: our records show you have already voted for this position.",
-        );
-      } else {
-        setFraudAlert(err?.message || "We could not record your vote. Please retry.");
-      }
-    }
-  };
-
   const handleBallotDrop = (e: React.DragEvent) => {
     e.preventDefault();
     if (!draggedCandidate || votingState !== "idle") return;
@@ -257,10 +146,7 @@ export function VotingBallotPage({
     setDraggedCandidate(null);
     setVotingState("sliding");
 
-    // Fire-and-forget DB insert while the envelope slides.
-    void persistVote(chosen);
-
-    // Wait for the slide-into-box animation to complete.
+    // Wait for the slide-into-box animation to complete (500ms)
     window.setTimeout(() => {
       fireConfetti();
       setVotingState("success");
@@ -323,24 +209,6 @@ export function VotingBallotPage({
           animation: slideIntoBox 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
       `}</style>
-
-      {/* Anti-fraud red banner */}
-      {fraudAlert && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-          <div className="flex-1">
-            <p className="font-semibold text-red-700 text-sm">Security Alert</p>
-            <p className="text-sm text-red-600">{fraudAlert}</p>
-          </div>
-          <button
-            onClick={() => setFraudAlert("")}
-            className="text-red-500 hover:text-red-700 text-xs font-semibold"
-          >
-            DISMISS
-          </button>
-        </div>
-      )}
-
       {/* Header greeting */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 px-6 py-5">
         <h1 className="text-xl sm:text-2xl font-bold text-[#0E1E38] text-center">
