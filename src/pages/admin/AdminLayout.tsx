@@ -2,7 +2,6 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { Menu, X, Users, Building2, Grid, FilePlus, FileText, Settings, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useState } from 'react';
-import { DashboardBranding } from '../../components/layout/DashboardBranding';
 
 export function AdminLayout() {
   const { user, logout } = useAuth();
